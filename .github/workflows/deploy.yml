@@ -34,6 +34,14 @@ jobs:
           zip -r lambda_function.zip .
           cd ..
 
+      # Verificar se o arquivo ZIP foi criado
+      - name: Check if ZIP file exists
+        run: |
+          if [ ! -f lambda/lambda_function.zip ]; then
+            echo "ZIP file not found!"
+            exit 1
+          fi
+
       - name: Terraform Init
         run: terraform init
         working-directory: ./infra
