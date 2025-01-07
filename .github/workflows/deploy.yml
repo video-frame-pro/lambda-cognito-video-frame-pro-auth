@@ -32,6 +32,7 @@ jobs:
           cp -r ./src/* lambda/
           cd lambda
           zip -r lambda_function.zip .
+          cd ..
 
       - name: Terraform Init
         run: terraform init
