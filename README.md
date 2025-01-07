@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="https://i.ibb.co/zs1zcs3/Video-Frame.png" width="30%" />
+</p>
+
+
 # app-cognito-video-frame-pro-auth
 
 Este repositório contém a implementação da lógica de autenticação do usuário, utilizando o **Amazon Cognito** para registro e login com autenticação via **JWT**.
