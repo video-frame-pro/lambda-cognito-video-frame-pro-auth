@@ -3,7 +3,7 @@ name: Validate Terraform and Create Pull Request for Feature Branches
 on:
   push:
     branches:
-      - 'feature/feature*'
+      - 'feature/*'
 
 jobs:
   terraform-validate:
