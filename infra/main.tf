@@ -18,8 +18,9 @@ resource "aws_lambda_function" "create_user" {
   }
 
   # Caminho para o código da função Lambda
-  filename         = "lambda/lambda_function.zip"
-  source_code_hash = filebase64sha256("lambda/lambda_function.zip")
+  filename         = "../lambda/lambda_function.zip"
+  source_code_hash = filebase64sha256("../lambda/lambda_function.zip")
+
 }
 
 # Role para Lambda
