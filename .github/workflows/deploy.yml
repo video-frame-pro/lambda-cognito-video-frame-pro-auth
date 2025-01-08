@@ -61,6 +61,12 @@ jobs:
         run: terraform refresh -input=false
         working-directory: ./infra
 
+      # Passo para destruir os recursos antigos (Se necessário)
+      - name: Terraform Destroy (Optional)
+        run: terraform destroy -auto-approve
+        working-directory: ./infra
+
+      # Passo para aplicar as alterações (criar/atualizar recursos)
       - name: Terraform Apply
         run: terraform apply -auto-approve
         working-directory: ./infra
