@@ -42,14 +42,17 @@ jobs:
             exit 1
           fi
 
+      # Terraform Init
       - name: Terraform Init
         run: terraform init
         working-directory: ./infra
 
+      # Terraform Validate
       - name: Terraform Validate
         run: terraform validate
         working-directory: ./infra
 
+      # Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -57,14 +60,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # Passo para importar os recursos existentes para o estado do Terraform
+      - name: Terraform Import (IAM Role)
+        run: |
+          terraform import aws_iam_role.lambda_role lambda_execution_role || true
+          terraform import aws_iam_policy.lambda_cognito_policy lambda_cognito_policy || true
+        working-directory: ./infra
+
+      # Terraform Refresh
       - name: Terraform Refresh
         run: terraform refresh -input=false
         working-directory: ./infra
 
+      # Terraform Apply
       - name: Terraform Apply
         run: terraform apply -auto-approve
         working-directory: ./infra
 
+      # Get Lambda function name from Terraform output
       - name: Get Lambda function name from Terraform output
         id: lambda_name
         run: echo "::set-output name=lambda_function_name::$(terraform output -raw lambda_function_name)"

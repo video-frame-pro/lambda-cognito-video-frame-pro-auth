@@ -19,14 +19,14 @@ resource "aws_lambda_function" "create_user" {
 
   # Caminho para o código da função Lambda
   filename         = "../lambda/lambda_function.zip"
-  source_code_hash = filebase64sha256("../lambda/lambda_function.zip")
+  source_code_hash = filebase64sha256("../lambda/lambda_function.zip")  # Garante que a Lambda seja atualizada quando o código mudar
 
   lifecycle {
-    # Cria antes de destruir caso tenha que recriar, mas geralmente queremos atualizar
-    create_before_destroy = false  # Agora, apenas atualizar o recurso existente
-    prevent_destroy       = false  # Permitindo que o recurso seja destruído se necessário
+    create_before_destroy = false  # Certifique-se de que o Terraform não criará a função Lambda novamente
+    prevent_destroy       = false
   }
 }
+
 
 # Role para Lambda
 resource "aws_iam_role" "lambda_role" {
@@ -46,15 +46,14 @@ resource "aws_iam_role" "lambda_role" {
   })
 
   lifecycle {
-    # Para IAM roles, podemos não precisar recriar antes de destruir
-    create_before_destroy = false  # Atualiza o recurso se necessário
-    prevent_destroy       = false  # Permite destruição, caso o recurso tenha que ser recriado
+    create_before_destroy = true
+    prevent_destroy = false
   }
 }
 
 # Política de Permissões do Cognito para Lambda
 resource "aws_iam_policy" "lambda_cognito_policy" {
-  name        = "lambda_cognito_policy"  # Nome fixo da política
+  name        = "lambda_cognito_policy"
   description = "Permissões necessárias para a Lambda registrar usuários no Cognito"
 
   policy = jsonencode({
@@ -71,8 +70,8 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
   })
 
   lifecycle {
-    create_before_destroy = false  # Atualiza a política, se necessário
-    prevent_destroy       = false  # Permite destruição, caso o recurso tenha que ser recriado
+    create_before_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -81,9 +80,4 @@ resource "aws_iam_policy_attachment" "lambda_policy_attachment" {
   name       = "lambda-policy-attachment"
   roles      = [aws_iam_role.lambda_role.name]
   policy_arn = aws_iam_policy.lambda_cognito_policy.arn
-}
-
-# Output da Lambda Function ARN
-output "lambda_function_arn" {
-  value = aws_lambda_function.create_user.arn
 }
