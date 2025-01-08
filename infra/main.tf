@@ -39,6 +39,10 @@ resource "aws_iam_role" "lambda_role" {
       },
     ]
   })
+  lifecycle {
+    create_before_destroy = true
+    prevent_destroy = true
+  }
 }
 
 # Política de Permissões do Cognito para Lambda
@@ -58,6 +62,10 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
       },
     ]
   })
+  lifecycle {
+    create_before_destroy = true
+    prevent_destroy = true
+  }
 }
 
 # Anexar a política à role da Lambda
