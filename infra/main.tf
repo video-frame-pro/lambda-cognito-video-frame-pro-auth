@@ -22,8 +22,7 @@ resource "aws_lambda_function" "create_user" {
   source_code_hash = filebase64sha256("../lambda/lambda_function.zip")
 
   lifecycle {
-    # Garante que, se necessário, o Terraform apenas atualiza e não recria
-    create_before_destroy = false
+    create_before_destroy = true
     prevent_destroy = false
   }
 }
@@ -46,8 +45,8 @@ resource "aws_iam_role" "lambda_role" {
   })
 
   lifecycle {
-    create_before_destroy = false  # Isso evita recriar a role se ela já existir
-    prevent_destroy       = false  # Permite que o Terraform destrua se necessário
+    create_before_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -70,8 +69,8 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
   })
 
   lifecycle {
-    create_before_destroy = false  # Garante que a política não seja recriada
-    prevent_destroy       = false  # Permite destruir a política se for necessário
+    create_before_destroy = true
+    prevent_destroy = false
   }
 }
 
