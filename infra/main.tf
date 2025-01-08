@@ -4,7 +4,7 @@ provider "aws" {
 
 # Função Lambda
 resource "aws_lambda_function" "create_user" {
-  function_name = "create_user_function"
+  function_name = "create_user_function"  # Nome fixo da função Lambda
 
   handler = "lambda_function.lambda_handler"
   runtime = "python3.8"
@@ -19,13 +19,14 @@ resource "aws_lambda_function" "create_user" {
 
   # Caminho para o código da função Lambda
   filename         = "../lambda/lambda_function.zip"
-  source_code_hash = filebase64sha256("../lambda/lambda_function.zip")
+  source_code_hash = filebase64sha256("../lambda/lambda_function.zip")  # Garante que a Lambda seja atualizada quando o código mudar
 
   lifecycle {
-    create_before_destroy = true
-    prevent_destroy = false
+    create_before_destroy = false  # Certifique-se de que o Terraform não criará a função Lambda novamente
+    prevent_destroy       = false
   }
 }
+
 
 # Role para Lambda
 resource "aws_iam_role" "lambda_role" {
