@@ -22,9 +22,8 @@ resource "aws_lambda_function" "create_user" {
   source_code_hash = filebase64sha256("../lambda/lambda_function.zip")
 
   lifecycle {
-    # Cria antes de destruir caso tenha que recriar, mas geralmente queremos atualizar
-    create_before_destroy = false  # Agora, apenas atualizar o recurso existente
-    prevent_destroy       = false  # Permitindo que o recurso seja destruído se necessário
+    create_before_destroy = false
+    prevent_destroy       = false
   }
 }
 
@@ -46,8 +45,7 @@ resource "aws_iam_role" "lambda_role" {
   })
 
   lifecycle {
-    # Para IAM roles, podemos não precisar recriar antes de destruir
-    create_before_destroy = false  # Atualiza o recurso se necessário
+    create_before_destroy = false  # Atualiza o recurso, se necessário
     prevent_destroy       = false  # Permite destruição, caso o recurso tenha que ser recriado
   }
 }
@@ -83,7 +81,3 @@ resource "aws_iam_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_cognito_policy.arn
 }
 
-# Output da Lambda Function ARN
-output "lambda_function_arn" {
-  value = aws_lambda_function.create_user.arn
-}
