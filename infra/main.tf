@@ -24,8 +24,11 @@ resource "aws_lambda_function" "create_user" {
 }
 
 # Role para Lambda
+resource "random_id" "lambda_role_id" {
+  byte_length = 8
+}
 resource "aws_iam_role" "lambda_role" {
-  name = "lambda_execution_role"
+  name = "lambda_role_${random_id.lambda_role_id.hex}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -45,8 +48,12 @@ resource "aws_iam_role" "lambda_role" {
 }
 
 # Política de Permissões do Cognito para Lambda
+
+resource "random_id" "lambda_policy_id" {
+  byte_length = 8
+}
 resource "aws_iam_policy" "lambda_cognito_policy" {
-  name        = "lambda_cognito_policy"
+  name        = "lambda_cognito_policy_${random_id.lambda_policy_id.hex}"
   description = "Permissões necessárias para a Lambda registrar usuários no Cognito"
 
   policy = jsonencode({
