@@ -72,9 +72,13 @@ jobs:
         run: terraform apply -auto-approve
         working-directory: ./infra
 
+      - name: Get Lambda function name from Terraform output
+        id: lambda_name
+        run: echo "::set-output name=lambda_function_name::$(terraform output -raw lambda_function_name)"
+
       - name: Upload Lambda ZIP to AWS
         run: |
           aws lambda update-function-code \
-            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+            --function-name ${{ steps.lambda_name.outputs.lambda_function_name }} \
             --zip-file fileb://lambda/lambda_function.zip \
             --region ${{ secrets.AWS_REGION }}
