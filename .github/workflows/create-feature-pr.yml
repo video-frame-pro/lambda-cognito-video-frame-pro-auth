@@ -1,0 +1,68 @@
+name: Validate Terraform and Create Pull Request for Feature Branches
+
+on:
+  push:
+    branches:
+      - 'feature/feature*'
+
+jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Fetch and Checkout Branches
+        if: ${{ success() }}
+        run: |
+          git fetch origin
+          git checkout develop
+          git pull origin develop
+          git fetch origin ${{ github.ref }}:${{ github.ref }}
+
+      - name: Create or Update Pull Request to Develop
+        if: ${{ success() }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT }}
+          script: |
+            const { data: existingPullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: context.ref,
+              base: 'develop',
+              state: 'open'
+            });
+
+            if (existingPullRequests.length > 0) {
+              const pullRequest = existingPullRequests[0];
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pullRequest.number,
+                title: `Sync ${context.ref} to develop`,
+                body: 'This is an automated PR to sync changes from feature branch to develop.'
+              });
+              console.log(`Updated pull request: ${pullRequest.html_url}`);
+            } else {
+              const { data: pullRequest } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Sync ${context.ref} to develop`,
+                head: context.ref,
+                base: 'develop',
+                body: 'This is an automated PR to sync changes from feature branch to develop.',
+                draft: false
+              });
+              console.log(`Created pull request: ${pullRequest.html_url}`);
+            }
