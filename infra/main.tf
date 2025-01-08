@@ -41,7 +41,6 @@ resource "aws_iam_role" "lambda_role" {
   })
   lifecycle {
     create_before_destroy = true
-    prevent_destroy = true
   }
 }
 
@@ -64,7 +63,6 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
   })
   lifecycle {
     create_before_destroy = true
-    prevent_destroy = true
   }
 }
 
