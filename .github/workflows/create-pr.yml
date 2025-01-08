@@ -1,7 +1,7 @@
-name: Create Pull Request to Main after Merge to Develop
+name: Validate Terraform and Create Pull Request
 
 on:
-  push:
+  pull_request:
     branches:
       - develop
 
@@ -22,13 +22,16 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Fetch and Checkout Branches
+      - name: Fetch latest changes
         if: ${{ success() }}
         run: |
           git fetch origin
+
+      - name: Checkout develop branch
+        if: ${{ success() }}
+        run: |
           git checkout develop
           git pull origin develop
-          git fetch origin ${{ github.ref }}:${{ github.ref }}
 
       - name: Create or Update Pull Request to Main (after merge to develop)
         if: ${{ success() }}
