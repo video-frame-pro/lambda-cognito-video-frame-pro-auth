@@ -21,6 +21,11 @@ resource "aws_lambda_function" "create_user" {
   filename         = "../lambda/lambda_function.zip"
   source_code_hash = filebase64sha256("../lambda/lambda_function.zip")
 
+  lifecycle {
+    create_before_destroy = true  # Garante que o novo recurso seja criado antes da destruição do anterior
+    prevent_destroy = false  # Removendo a proteção de destruição
+  }
+
 }
 
 # Role para Lambda
