@@ -65,6 +65,7 @@ jobs:
         run: |
           terraform import aws_iam_role.lambda_role lambda_execution_role || true
           terraform import aws_iam_policy.lambda_cognito_policy lambda_cognito_policy || true
+          terraform import aws_lambda_function.create_user create_user_function || true
         working-directory: ./infra
 
       # Terraform Refresh
