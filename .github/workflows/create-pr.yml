@@ -1,7 +1,7 @@
-name: Create Pull Request to Main after Merge to Develop
+name: Validate Terraform and Create Pull Request
 
 on:
-  push:
+  pull_request:
     branches:
       - develop
 
@@ -28,9 +28,19 @@ jobs:
           git fetch origin
           git checkout develop
           git pull origin develop
-          git fetch origin ${{ github.ref }}:${{ github.ref }}
+          git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
 
-      - name: Create or Update Pull Request to Main (after merge to develop)
+      - name: Merge PR to Develop
+        if: ${{ success() }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git merge --no-ff ${{ github.event.pull_request.head.ref }}
+          git push origin develop
+        env:
+          token: ${{ secrets.PAT }}
+
+      - name: Create or Update Pull Request to Main
         if: ${{ success() }}
         uses: actions/github-script@v6
         with:
