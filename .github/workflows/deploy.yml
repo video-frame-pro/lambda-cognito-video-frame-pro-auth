@@ -28,6 +28,9 @@ jobs:
             pip install -r ./src/requirements.txt
           fi
 
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+
       - name: Create ZIP file for Lambda
         run: |
           mkdir -p lambda
