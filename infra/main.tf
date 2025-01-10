@@ -2,11 +2,11 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Função Lambda
-resource "aws_lambda_function" "create_user" {
-  function_name = "user_auth_function"  # Nome fixo da função Lambda
+# Função Lambda para Registro de Usuário
+resource "aws_lambda_function" "register_user" {
+  function_name = "user_register_function"  # Nome fixo da função Lambda
 
-  handler = "lambda_function.lambda_handler"
+  handler = "register.lambda_handler"  # Atualizado para o handler da função de registro
   runtime = "python3.8"
   role    = aws_iam_role.lambda_role.arn
 
@@ -18,12 +18,29 @@ resource "aws_lambda_function" "create_user" {
   }
 
   # Caminho para o código da função Lambda
-  filename         = "../lambda/lambda_function.zip"
-  source_code_hash = filebase64sha256("../lambda/lambda_function.zip")  # Garante que a Lambda seja atualizada quando o código mudar
-
-
+  filename         = "../src/register/lambda_function.zip"  # Novo caminho
+  source_code_hash = filebase64sha256("../src/register/lambda_function.zip")
 }
 
+# Função Lambda para Login de Usuário
+resource "aws_lambda_function" "login_user" {
+  function_name = "user_login_function"  # Nome fixo da função Lambda
+
+  handler = "login.lambda_handler"  # Atualizado para o handler da função de login
+  runtime = "python3.8"
+  role    = aws_iam_role.lambda_role.arn
+
+  environment {
+    variables = {
+      COGNITO_USER_POOL_ID = var.COGNITO_USER_POOL_ID
+      COGNITO_CLIENT_ID    = var.COGNITO_CLIENT_ID
+    }
+  }
+
+  # Caminho para o código da função Lambda
+  filename         = "../src/login/lambda_function.zip"  # Novo caminho
+  source_code_hash = filebase64sha256("../src/login/lambda_function.zip")
+}
 
 # Role para Lambda
 resource "aws_iam_role" "lambda_role" {
@@ -41,8 +58,6 @@ resource "aws_iam_role" "lambda_role" {
       },
     ]
   })
-
-
 }
 
 # Política de Permissões do Cognito para Lambda
@@ -55,15 +70,14 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
     Statement = [
       {
         Action = [
-          "cognito-idp:SignUp"
+          "cognito-idp:SignUp",  # Para a função de registro
+          "cognito-idp:InitiateAuth"  # Para a função de login
         ]
         Effect   = "Allow"
         Resource = var.COGNITO_USER_POOL_ARN
       },
     ]
   })
-
-
 }
 
 # Anexar a política à role da Lambda
