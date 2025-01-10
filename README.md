@@ -13,7 +13,7 @@ Este repositório contém a implementação da lógica de autenticação do usu�
 
 ## Tecnologias
 - AWS Cognito
-- Node.js/Python (dependendo da escolha da implementação)
+- Node.js/Python (dependendo da escolha da implementação).
 
 ## Como usar
 1. Integre com o **Cognito User Pool**.
