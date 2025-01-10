@@ -18,8 +18,8 @@ resource "aws_lambda_function" "register_user" {
   }
 
   # Caminho para o código da função Lambda
-  filename         = "../src/register/lambda_function.zip"  # Novo caminho
-  source_code_hash = filebase64sha256("../src/register/lambda_function.zip")
+  filename         = "../lambda/register/register_lambda_function.zip"
+  source_code_hash = filebase64sha256("../lambda/register/register_lambda_function.zip")
 }
 
 # Função Lambda para Login de Usuário
@@ -38,8 +38,8 @@ resource "aws_lambda_function" "login_user" {
   }
 
   # Caminho para o código da função Lambda
-  filename         = "../src/login/lambda_function.zip"  # Novo caminho
-  source_code_hash = filebase64sha256("../src/login/lambda_function.zip")
+  filename         = "../lambda/login/login_lambda_function.zip"
+  source_code_hash = filebase64sha256("../lambda/login/login_lambda_function.zip")
 }
 
 # Role para Lambda
