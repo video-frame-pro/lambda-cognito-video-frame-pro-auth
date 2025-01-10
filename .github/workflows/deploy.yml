@@ -79,7 +79,7 @@ jobs:
       - name: Upload Lambda ZIP to AWS
         run: |
           echo "Updating Lambda function ${LAMBDA_FUNCTION_NAME}"
-          aws lambda update-function-code \
+          aws lambda create-function-code \
             --function-name ${{ steps.lambda_name.outputs.lambda_function_name }} \
             --zip-file fileb://lambda/lambda_function.zip \
             --region ${{ secrets.AWS_REGION }}
