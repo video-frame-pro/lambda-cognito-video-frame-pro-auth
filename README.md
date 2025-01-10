@@ -4,9 +4,11 @@
 
 ---
 
-# app-cognito-video-frame-pro-auth
+# lambda-cognito-video-frame-pro-auth
 
 Este repositório contém a implementação da **lógica de autenticação do usuário** para o sistema de **gerenciamento de vídeos**. A autenticação é realizada através do **Amazon Cognito**, que gerencia o **registro**, **login** e a emissão de **tokens JWT** para autenticação.
+
+---
 
 ## Funções
 
@@ -108,7 +110,7 @@ Este projeto também configura um **CI/CD pipeline** usando **GitHub Actions** p
     2. Empacota o código das Lambdas em arquivos ZIP.
     3. Executa o Terraform para provisionar a infraestrutura.
 
-### 6. Testes
+### Testes
 
 Para testar a integração:
 
@@ -148,6 +150,8 @@ Para testar a integração:
 - O **registro** não exige autenticação.
 - O **login** exige que o usuário forneça credenciais válidas (nome de usuário e senha) e recebe um **token JWT**.
 - Para acessar outros serviços protegidos, o **token JWT** deve ser incluído no cabeçalho da requisição como um **Bearer Token**.
+
+---
 
 ## Contribuindo
 
