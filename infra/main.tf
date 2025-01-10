@@ -4,7 +4,7 @@ provider "aws" {
 
 # Função Lambda
 resource "aws_lambda_function" "create_user" {
-  function_name = "user_auth_function" # Nome fixo da função Lambda
+  function_name = "user_auth_function"  # Nome fixo da função Lambda
 
   handler = "lambda_function.lambda_handler"
   runtime = "python3.8"
@@ -20,6 +20,8 @@ resource "aws_lambda_function" "create_user" {
   # Caminho para o código da função Lambda
   filename         = "../lambda/lambda_function.zip"
   source_code_hash = filebase64sha256("../lambda/lambda_function.zip")  # Garante que a Lambda seja atualizada quando o código mudar
+
+
 }
 
 
@@ -39,6 +41,8 @@ resource "aws_iam_role" "lambda_role" {
       },
     ]
   })
+
+
 }
 
 # Política de Permissões do Cognito para Lambda
@@ -58,6 +62,8 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
       },
     ]
   })
+
+
 }
 
 # Anexar a política à role da Lambda
