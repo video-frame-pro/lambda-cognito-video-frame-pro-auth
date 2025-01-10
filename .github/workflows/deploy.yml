@@ -60,14 +60,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Passo para importar os recursos existentes para o estado do Terraform
-      - name: Terraform Import (IAM Role)
-        run: |
-          terraform import aws_iam_role.lambda_role lambda_execution_role || true
-          terraform import aws_iam_policy.lambda_cognito_policy lambda_cognito_policy || true
-          terraform import aws_lambda_function.create_user create_user_function || true
-        working-directory: ./infra
-
       # Terraform Refresh
       - name: Terraform Refresh
         run: terraform refresh -input=false
