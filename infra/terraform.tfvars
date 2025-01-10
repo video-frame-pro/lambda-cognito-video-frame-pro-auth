@@ -1,8 +1,8 @@
 # ID do Cognito User Pool
-COGNITO_USER_POOL_ID = "us-east-1_XTF6mhz1s"
+COGNITO_USER_POOL_ID = "us-east-1_n0O5mxYKk"
 
 # ARN do Cognito User Pool
-COGNITO_USER_POOL_ARN = "arn:aws:cognito-idp:us-east-1:522814708374:userpool/us-east-1_XTF6mhz1s"
+COGNITO_USER_POOL_ARN = "arn:aws:cognito-idp:us-east-1:522814708374:userpool/us-east-1_n0O5mxYKk"
 
 # ID do Cognito App Client
-COGNITO_CLIENT_ID = "6bg9konvav1be1fm1946qrqia2"
+COGNITO_CLIENT_ID = "4c3u0mu0b07rii96lm8ok2rfbu"
