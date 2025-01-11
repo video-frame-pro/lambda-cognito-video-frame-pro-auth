@@ -73,6 +73,7 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
           "cognito-idp:SignUp",  # Permissão para registrar usuários no Cognito
           "cognito-idp:InitiateAuth",  # Permissão para iniciar autenticação (login) no Cognito
           "cognito-idp:AdminCreateUser",  # Permissão adicional para criar usuários se necessário
+          "cognito-idp:RespondToAuthChallenge",
           "lambda:GetFunction"  # Permissão para a Lambda acessar o código de outra função Lambda (caso precise)
         ]
         Effect   = "Allow"
@@ -81,7 +82,8 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
       {
         Action = [
           "cognito-idp:AdminConfirmSignUp",  # Permissão para confirmar o cadastro de um novo usuário
-          "cognito-idp:AdminSetUserPassword"  # Permissão para configurar ou redefinir senhas dos usuários
+          "cognito-idp:AdminSetUserPassword",  # Permissão para configurar ou redefinir senhas dos usuários
+          "cognito-idp:AdminGetUser"  # Adicionada permissão para obter informações do usuário (necessária para a Lambda)
         ]
         Effect   = "Allow"
         Resource = var.COGNITO_USER_POOL_ARN
@@ -89,7 +91,6 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
     ]
   })
 }
-
 
 # Anexar a política à role da Lambda
 resource "aws_iam_policy_attachment" "lambda_policy_attachment" {
