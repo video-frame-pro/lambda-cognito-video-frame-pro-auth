@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         return generate_error_response(400, 'Invalid email format')
 
     try:
-        # Verificar se o email ou username já existe
+        # Verificar se o email já existe
         cognito_client.admin_get_user(
             UserPoolId=USER_POOL_ID,
             Username=email  # Verifica se o email já está em uso
@@ -55,6 +55,7 @@ def lambda_handler(event, context):
         pass  # O usuário não existe, então podemos continuar
 
     try:
+        # Verificar se o username já existe
         cognito_client.admin_get_user(
             UserPoolId=USER_POOL_ID,
             Username=username  # Verifica se o username já está em uso
@@ -64,23 +65,29 @@ def lambda_handler(event, context):
         pass  # O username não existe, então podemos continuar
 
     try:
-        # Criar o usuário no Cognito via sign_up
-        response = cognito_client.sign_up(
-            ClientId=os.environ['COGNITO_CLIENT_ID'],  # Usamos o ClientId aqui para referir ao app client
-            Username=username,  # Usamos o username para o cadastro
-            Password=password,
+        # Criar o usuário no Cognito via admin_create_user
+        cognito_client.admin_create_user(
+            UserPoolId=USER_POOL_ID,
+            Username=username,
             UserAttributes=[
-                {'Name': 'email', 'Value': email},
-                {'Name': 'preferred_username', 'Value': username}  # Adicionando o username também
-            ]
+                {'Name': 'email', 'Value': email}
+            ],
+            MessageAction='SUPPRESS',  # Não envia o email de confirmação
+        )
+
+        # Definir a senha permanente para o usuário
+        cognito_client.admin_set_user_password(
+            UserPoolId=USER_POOL_ID,
+            Username=username,
+            Password=password,
+            Permanent=True
         )
 
         return {
             'statusCode': 200,
             'body': json.dumps({
                 'message': 'User created successfully',
-                'username': username,
-                'user_attributes': response
+                'username': username
             })
         }
     except ClientError as e:
