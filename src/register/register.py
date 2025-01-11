@@ -45,12 +45,34 @@ def lambda_handler(event, context):
         return generate_error_response(400, 'Invalid email format')
 
     try:
+        # Verificar se o email ou username já existe
+        cognito_client.admin_get_user(
+            UserPoolId=USER_POOL_ID,
+            Username=email  # Verifica se o email já está em uso
+        )
+        return generate_error_response(400, 'Email already exists')
+    except cognito_client.exceptions.UserNotFoundException:
+        pass  # O usuário não existe, então podemos continuar
+
+    try:
+        cognito_client.admin_get_user(
+            UserPoolId=USER_POOL_ID,
+            Username=username  # Verifica se o username já está em uso
+        )
+        return generate_error_response(400, 'Username already exists')
+    except cognito_client.exceptions.UserNotFoundException:
+        pass  # O username não existe, então podemos continuar
+
+    try:
         # Criar o usuário no Cognito via sign_up
         response = cognito_client.sign_up(
             ClientId=os.environ['COGNITO_CLIENT_ID'],  # Usamos o ClientId aqui para referir ao app client
-            Username=username,
+            Username=username,  # Usamos o username para o cadastro
             Password=password,
-            UserAttributes=[{'Name': 'email', 'Value': email}]
+            UserAttributes=[
+                {'Name': 'email', 'Value': email},
+                {'Name': 'preferred_username', 'Value': username}  # Adicionando o username também
+            ]
         )
 
         return {
