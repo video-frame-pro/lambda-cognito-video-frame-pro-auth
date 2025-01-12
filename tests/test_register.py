@@ -4,11 +4,15 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock
 from botocore.exceptions import ClientError
 from datetime import datetime
+import boto3  # Importando boto3 para garantir que o mock da região seja configurado
 
-# Define the environment variable for testing
+# Defina as variáveis de ambiente **antes** da importação
 os.environ['AWS_REGION'] = 'us-east-1'
 os.environ['COGNITO_USER_POOL_ID'] = 'fake_id'
 os.environ['COGNITO_CLIENT_ID'] = 'fake_client_id'
+
+# Garanta que o boto3 use a região definida
+boto3.setup_default_session(region_name=os.environ['AWS_REGION'])
 
 # Import the functions from your module
 from src.register.register import lambda_handler, cognito_client, is_valid_email, generate_error_response
