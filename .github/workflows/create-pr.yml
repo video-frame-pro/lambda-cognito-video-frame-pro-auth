@@ -1,4 +1,4 @@
-name: Validate Terraform, Run Tests and Create Pull Request
+name: Validate Terraform, Run Tests, and Create Pull Request
 
 on:
   pull_request:
@@ -22,8 +22,53 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: terraform-validate  # Garante que os testes rodem apenas após a validação do Terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install test dependencies
+        run: |
+          pip install -r tests/requirements.txt
+          pip install coverage coverage-badge
+
+      - name: Run tests with coverage
+        run: |
+          coverage run -m unittest discover -s tests
+          coverage report -m --fail-under=90
+          coverage html
+          coverage-badge -o coverage.svg -f
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: htmlcov
+
+      - name: Upload coverage badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-badge
+          path: coverage.svg
+
+  sync-develop-to-main:
+    runs-on: ubuntu-latest
+    needs: run-tests  # Só cria o PR se os testes passarem
+    if: success()  # Executa apenas se os jobs anteriores forem bem-sucedidos
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Fetch and Checkout Branches
-        if: ${{ success() }}
         run: |
           git fetch origin
           git checkout develop
@@ -31,7 +76,6 @@ jobs:
           git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
 
       - name: Merge PR to Develop
-        if: ${{ success() }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -41,7 +85,6 @@ jobs:
           token: ${{ secrets.PAT }}
 
       - name: Create or Update Pull Request to Main
-        if: ${{ success() }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.PAT }}
@@ -76,39 +119,3 @@ jobs:
               });
               console.log(`Created pull request: ${pullRequest.html_url}`);
             }
-
-  tests:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install test dependencies
-        run: |
-          pip install -r tests/requirements.txt
-          pip install coverage coverage-badge
-
-      - name: Run tests with coverage
-        run: |
-          coverage run -m unittest discover -s tests
-          coverage report -m --fail-under=90
-          coverage html
-          coverage-badge -o coverage.svg -f
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: htmlcov
-
-      - name: Upload coverage badge
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-badge
-          path: coverage.svg
