@@ -11,7 +11,7 @@ Este repositório contém a implementação da **lógica de autenticação do us
 
 ## Cobertura atual dos testes
 
-![Coverage](./coverage.svg)
+![Coverage](tests/coverage.svg)
 
 ## Funções
 
