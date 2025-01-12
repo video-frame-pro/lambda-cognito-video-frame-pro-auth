@@ -47,17 +47,22 @@ jobs:
           coverage html
           coverage-badge -o coverage.svg -f
 
+      - name: Move coverage files to tests directory
+        run: |
+          mv htmlcov tests/htmlcov
+          mv coverage.svg tests/coverage.svg
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: htmlcov
+          path: tests/htmlcov  # Diretório onde o relatório foi movido
 
       - name: Upload coverage badge
         uses: actions/upload-artifact@v3
         with:
           name: coverage-badge
-          path: coverage.svg
+          path: tests/coverage.svg  # Diretório onde o badge foi movido
 
   sync-develop-to-main:
     runs-on: ubuntu-latest
