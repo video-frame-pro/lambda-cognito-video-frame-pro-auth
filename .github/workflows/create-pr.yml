@@ -91,24 +91,11 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install -r tests/requirements.txt
+          pip install -r ./tests/requirements.txt
           pip install coverage coverage-badge
 
       - name: Run tests with coverage
         run: |
           coverage run -m unittest discover -s tests
           coverage report -m --fail-under=90
-          coverage html
-          coverage-badge -o coverage.svg -f
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: htmlcov
-
-      - name: Upload coverage badge
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-badge
-          path: coverage.svg
+          coverage-badge -o ./tests/coverage.svg -f
