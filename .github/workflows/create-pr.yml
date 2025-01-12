@@ -57,7 +57,7 @@ jobs:
           mv htmlcov tests/reports/htmlcov
           mv coverage.svg tests/reports/coverage.svg
 
-      - name: List files in reports directory
+      - name: List files in test reports directory
         run: |
           echo "Listing files in tests/reports directory after move"
           ls -R tests/reports  # Lista todos os arquivos dentro de tests/reports
