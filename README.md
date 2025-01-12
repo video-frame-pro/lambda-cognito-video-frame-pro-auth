@@ -9,11 +9,9 @@ Este repositório contém a implementação da **lógica de autenticação do us
 
 ---
 
-## Ultimos Status
+## Cobertura atual dos testes
 
-![Coverage](./coverage.svg)
-[![Validate Terraform and Create Pull Request](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/create-pr.yml/badge.svg)](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/create-pr.yml)
-[![Terraform Deploy](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/deploy.yml/badge.svg)](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/deploy.yml)
+![Coverage](tests/coverage.svg)
 
 ## Funções
 
