@@ -6,7 +6,9 @@ import os
 from datetime import datetime
 
 # Define the environment variable for testing
-os.environ['COGNITO_USER_POOL_ID'] = 'us-east-1_ZL87UW5Jl'
+os.environ['AWS_REGION'] = 'us-east-1'
+os.environ['COGNITO_USER_POOL_ID'] = 'fake_id'
+os.environ['COGNITO_CLIENT_ID'] = 'fake_client_id'
 
 # Import the functions from your module
 from src.register.register import lambda_handler, cognito_client, is_valid_email, generate_error_response
