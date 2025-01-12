@@ -62,17 +62,19 @@ jobs:
           echo "Listing files in tests/reports directory after move"
           ls -R tests/reports  # Lista todos os arquivos dentro de tests/reports
 
+      # Upload do relatório de cobertura
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: tests/reports/htmlcov  # Diretório onde o relatório foi movido
+          path: tests/reports/htmlcov
 
+      # Upload do badge de cobertura
       - name: Upload coverage badge
         uses: actions/upload-artifact@v3
         with:
           name: coverage-badge
-          path: tests/reports/coverage.svg  # Diretório onde o badge foi movido
+          path: tests/reports/coverage.svg
 
   sync-develop-to-main:
     runs-on: ubuntu-latest
