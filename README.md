@@ -2,13 +2,18 @@
   <img src="https://i.ibb.co/zs1zcs3/Video-Frame.png" width="30%" />
 </p>
 
----
 
-# lambda-cognito-video-frame-pro-auth
+---
 
 Este repositório contém a implementação da **lógica de autenticação do usuário** para o sistema de **gerenciamento de vídeos**. A autenticação é realizada através do **Amazon Cognito**, que gerencia o **registro**, **login** e a emissão de **tokens JWT** para autenticação.
 
 ---
+
+## Ultimos Status
+
+![Coverage](./coverage.svg)
+[![Validate Terraform and Create Pull Request](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/create-pr.yml/badge.svg)](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/create-pr.yml)
+[![Terraform Deploy](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/deploy.yml/badge.svg)](https://github.com/video-frame-pro/lambda-cognito-video-frame-pro-auth/actions/workflows/deploy.yml)
 
 ## Funções
 
@@ -48,6 +53,9 @@ Este projeto é composto por duas funções Lambda que lidam com a autenticaçã
 ├── outputs.tf                   # Outputs das funções e recursos Terraform
 ├── variables.tf                 # Definições de variáveis Terraform
 ├── terraform.tfvars             # Arquivo com variáveis de ambiente
+/tests
+├── test_register.py             # Testes unitários para a função de registro
+├── test_login.py                # Testes unitários para a função de login
 ```
 
 ## Como Funciona
@@ -150,6 +158,61 @@ Para testar a integração:
 - O **registro** não exige autenticação.
 - O **login** exige que o usuário forneça credenciais válidas (nome de usuário e senha) e recebe um **token JWT**.
 - Para acessar outros serviços protegidos, o **token JWT** deve ser incluído no cabeçalho da requisição como um **Bearer Token**.
+
+
+## Executando Testes Unitários e Verificando Cobertura
+
+## Cobertura de Testes
+
+### Pré-requisitos
+
+Certifique-se de ter os seguintes itens instalados e configurados:
+
+- **Python** (versão 3.6 ou superior)
+- **pip** (gerenciador de pacotes do Python)
+
+### Passos para Executar os Testes Unitários e Verificar a Cobertura
+
+1. **Instale as dependências de desenvolvimento**:
+   No diretório raiz do projeto, execute o seguinte comando para instalar as dependências necessárias para os testes:
+
+   ```sh
+   pip install -r tests/requirements.txt
+   ```
+
+2. **Execute os testes com cobertura**:
+   Use o `coverage.py` para rodar os testes e medir a cobertura:
+
+   ```sh
+   coverage run -m unittest discover -s tests
+   ```
+
+3. **Gere o relatório de cobertura**:
+   Após rodar os testes, gere o relatório de cobertura:
+
+   ```sh
+   coverage report -m
+   ```
+
+   Isso irá mostrar a cobertura dos testes no terminal.
+
+4. **(Opcional) Gere um relatório HTML de cobertura**:
+   Para gerar um relatório de cobertura em formato HTML, execute:
+
+   ```sh
+   coverage html
+   ```
+
+   O relatório será gerado no diretório `htmlcov`. Abra o arquivo `index.html` no seu navegador para visualizar o relatório.
+
+### Resumo dos Comandos
+
+```sh
+pip install -r tests/requirements.txt
+coverage run -m unittest discover -s tests
+coverage report -m
+coverage html  # Opcional
+```
 
 ---
 
