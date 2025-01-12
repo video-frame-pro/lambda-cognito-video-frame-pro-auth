@@ -47,7 +47,32 @@ jobs:
           coverage html
           coverage-badge -o coverage.svg -f
 
+      - name: List files in tests directory before moving
+        run: |
+          echo "Listing files in tests directory"
+          ls -R tests  # Lista todos os arquivos dentro do diretório tests
 
+      - name: Move coverage files to reports directory
+        run: |
+          mv htmlcov tests/reports/htmlcov
+          mv coverage.svg tests/reports/coverage.svg
+
+      - name: List files in reports directory
+        run: |
+          echo "Listing files in tests/reports directory after move"
+          ls -R tests/reports  # Lista todos os arquivos dentro de tests/reports
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: tests/reports/htmlcov  # Diretório onde o relatório foi movido
+
+      - name: Upload coverage badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-badge
+          path: tests/reports/coverage.svg  # Diretório onde o badge foi movido
 
   sync-develop-to-main:
     runs-on: ubuntu-latest
