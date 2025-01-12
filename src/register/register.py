@@ -3,6 +3,7 @@ import boto3
 import os
 import re
 from botocore.exceptions import ClientError
+from datetime import datetime
 
 # Configuração do Cognito
 cognito_client = boto3.client('cognito-idp')
@@ -37,6 +38,9 @@ def lambda_handler(event, context):
     if not password:
         return generate_error_response(400, 'Missing parameter: password')
 
+    if len(password) > 6:
+        return generate_error_response(400, 'Password must be at most 6 characters long')
+
     if not email:
         return generate_error_response(400, 'Missing parameter: email')
 
@@ -65,12 +69,17 @@ def lambda_handler(event, context):
         pass  # O username não existe, então podemos continuar
 
     try:
+        # Obter a hora atual no formato Unix timestamp
+        current_time = int(datetime.utcnow().timestamp())
+
         # Criar o usuário no Cognito via admin_create_user
         cognito_client.admin_create_user(
             UserPoolId=USER_POOL_ID,
             Username=username,
             UserAttributes=[
-                {'Name': 'email', 'Value': email}
+                {'Name': 'email', 'Value': email},
+                {'Name': 'email_verified', 'Value': 'True'},  # Marcar o email como verificado
+                {'Name': 'updated_at', 'Value': str(current_time)}  # Adicionar o atributo updated_at
             ],
             MessageAction='SUPPRESS',  # Não envia o email de confirmação
         )
