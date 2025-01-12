@@ -11,7 +11,7 @@ Este repositório contém a implementação da **lógica de autenticação do us
 
 ## Cobertura atual dos testes
 
-![Coverage](tests/coverage.svg)
+![Coverage](./coverage.svg)
 
 ## Funções
 
@@ -209,7 +209,7 @@ Certifique-se de ter os seguintes itens instalados e configurados:
 pip install -r tests/requirements.txt
 coverage run -m unittest discover -s tests
 coverage report -m
-coverage html  # Opcional
+coverage html  
 ```
 
 ---
