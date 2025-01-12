@@ -5,6 +5,8 @@ from unittest.mock import patch
 from botocore.exceptions import ClientError
 
 os.environ['COGNITO_USER_POOL_ID'] = 'us-east-1_ZL87UW5Jl'
+os.environ['COGNITO_USER_POOL_ID'] = 'your_user_pool_id'
+os.environ['COGNITO_CLIENT_ID'] = 'your_client_id'
 
 from src.login.login import lambda_handler, cognito_client
 
