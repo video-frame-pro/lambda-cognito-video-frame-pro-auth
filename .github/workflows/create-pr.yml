@@ -87,4 +87,40 @@ jobs:
           git merge --no-ff ${{ github.event.pull_request.head.ref }}
           git push origin develop
         env:
+          token: ${{ secrets.PAT }}
 
+      - name: Create or Update Pull Request to Main
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT }}
+          script: |
+            const { data: existingPullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: 'develop',
+              base: 'main',
+              state: 'open'
+            });
+
+            if (existingPullRequests.length > 0) {
+              const pullRequest = existingPullRequests[0];
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pullRequest.number,
+                title: 'Sync develop to main',
+                body: 'This is an automated PR to sync changes from develop to main.'
+              });
+              console.log(`Updated pull request: ${pullRequest.html_url}`);
+            } else {
+              const { data: pullRequest } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Sync develop to main',
+                head: 'develop',
+                base: 'main',
+                body: 'This is an automated PR to sync changes from develop to main.',
+                draft: false
+              });
+              console.log(`Created pull request: ${pullRequest.html_url}`);
+            }
