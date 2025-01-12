@@ -1,14 +1,14 @@
 from unittest.mock import patch, MagicMock
 from unittest import TestCase
 import json
-from botocore.exceptions import ClientError
 import os
-from datetime import datetime
 
 # Define the environment variable for testing
 os.environ['AWS_REGION'] = 'us-east-1'
 os.environ['COGNITO_USER_POOL_ID'] = 'fake_id'
 os.environ['COGNITO_CLIENT_ID'] = 'fake_client_id'
+
+from botocore.exceptions import ClientError
 
 # Import the functions from your module
 from src.register.register import lambda_handler, cognito_client, is_valid_email, generate_error_response

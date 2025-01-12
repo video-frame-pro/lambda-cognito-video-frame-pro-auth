@@ -2,12 +2,13 @@ import json
 import os
 from unittest import TestCase
 from unittest.mock import patch
-from botocore.exceptions import ClientError
 
 # Defina as variáveis de ambiente **antes** da importação
 os.environ['AWS_REGION'] = 'us-east-1'
 os.environ['COGNITO_USER_POOL_ID'] = 'fake_id'
 os.environ['COGNITO_CLIENT_ID'] = 'fake_client_id'
+
+from botocore.exceptions import ClientError
 
 from src.login.login import lambda_handler, cognito_client
 
