@@ -11,7 +11,7 @@ os.environ['cognito_user_pool_id'] = 'fake_id'
 os.environ['cognito_client_id'] = 'fake_client_id'
 
 # Garanta que o boto3 use a região definida
-boto3.setup_default_session(region_name=os.environ['AWS_REGION'])
+boto3.setup_default_session(region_name=os.environ['aws_region'])
 
 from src.login.login import lambda_handler, cognito_client
 
