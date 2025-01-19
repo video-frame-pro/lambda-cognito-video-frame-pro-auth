@@ -4,11 +4,11 @@ provider "aws" {
 
 # Função Lambda para Registro de Usuário
 resource "aws_lambda_function" "register_user" {
-  function_name = "user_register_function"  # Nome fixo da função Lambda
+  function_name = "user_register_function"
 
-  handler = "register.lambda_handler"  # Atualizado para o handler da função de registro
+  handler = "register.lambda_handler"
   runtime = "python3.8"
-  role    = aws_iam_role.lambda_role.arn
+  role    = aws_iam_role.lambda_register_role.arn  # Atualizado para usar a role específica
 
   environment {
     variables = {
@@ -17,18 +17,17 @@ resource "aws_lambda_function" "register_user" {
     }
   }
 
-  # Caminho para o código da função Lambda
   filename         = "../lambda/register/register_lambda_function.zip"
   source_code_hash = filebase64sha256("../lambda/register/register_lambda_function.zip")
 }
 
 # Função Lambda para Login de Usuário
 resource "aws_lambda_function" "login_user" {
-  function_name = "user_login_function"  # Nome fixo da função Lambda
+  function_name = "user_login_function"
 
-  handler = "login.lambda_handler"  # Atualizado para o handler da função de login
+  handler = "login.lambda_handler"
   runtime = "python3.8"
-  role    = aws_iam_role.lambda_role.arn
+  role    = aws_iam_role.lambda_login_role.arn  # Atualizado para usar a role específica
 
   environment {
     variables = {
@@ -37,14 +36,31 @@ resource "aws_lambda_function" "login_user" {
     }
   }
 
-  # Caminho para o código da função Lambda
   filename         = "../lambda/login/login_lambda_function.zip"
   source_code_hash = filebase64sha256("../lambda/login/login_lambda_function.zip")
 }
 
-# Role para Lambda
-resource "aws_iam_role" "lambda_role" {
-  name = "lambda_execution_role"  # Nome fixo da role
+# Role para Lambda de Registro
+resource "aws_iam_role" "lambda_register_role" {
+  name = "lambda_register_user_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+# Role para Lambda de Login
+resource "aws_iam_role" "lambda_login_role" {
+  name = "lambda_login_user_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -63,27 +79,27 @@ resource "aws_iam_role" "lambda_role" {
 # Política de Permissões do Cognito para Lambda
 resource "aws_iam_policy" "lambda_cognito_policy" {
   name        = "lambda_cognito_policy"
-  description = "Permissões necessárias para a Lambda registrar usuários no Cognito e autenticar login"
+  description = "Permissões necessárias para as Lambdas interagirem com o Cognito"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Action = [
-          "cognito-idp:SignUp",  # Permissão para registrar usuários no Cognito
-          "cognito-idp:InitiateAuth",  # Permissão para iniciar autenticação (login) no Cognito
-          "cognito-idp:AdminCreateUser",  # Permissão adicional para criar usuários se necessário
+          "cognito-idp:SignUp",
+          "cognito-idp:InitiateAuth",
+          "cognito-idp:AdminCreateUser",
           "cognito-idp:RespondToAuthChallenge",
-          "lambda:GetFunction"  # Permissão para a Lambda acessar o código de outra função Lambda (caso precise)
+          "lambda:GetFunction"
         ]
         Effect   = "Allow"
-        Resource = var.COGNITO_USER_POOL_ARN  # A política será aplicada para o ARN do Pool de Usuários
+        Resource = var.COGNITO_USER_POOL_ARN
       },
       {
         Action = [
-          "cognito-idp:AdminConfirmSignUp",  # Permissão para confirmar o cadastro de um novo usuário
-          "cognito-idp:AdminSetUserPassword",  # Permissão para configurar ou redefinir senhas dos usuários
-          "cognito-idp:AdminGetUser"  # Adicionada permissão para obter informações do usuário (necessária para a Lambda)
+          "cognito-idp:AdminConfirmSignUp",
+          "cognito-idp:AdminSetUserPassword",
+          "cognito-idp:AdminGetUser"
         ]
         Effect   = "Allow"
         Resource = var.COGNITO_USER_POOL_ARN
@@ -92,9 +108,14 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
   })
 }
 
-# Anexar a política à role da Lambda
-resource "aws_iam_policy_attachment" "lambda_policy_attachment" {
-  name       = "lambda-policy-attachment"
-  roles      = [aws_iam_role.lambda_role.name]
+# Anexar a política à role da Lambda de Registro
+resource "aws_iam_role_policy_attachment" "register_policy_attachment" {
+  role       = aws_iam_role.lambda_register_role.name
+  policy_arn = aws_iam_policy.lambda_cognito_policy.arn
+}
+
+# Anexar a política à role da Lambda de Login
+resource "aws_iam_role_policy_attachment" "login_policy_attachment" {
+  role       = aws_iam_role.lambda_login_role.name
   policy_arn = aws_iam_policy.lambda_cognito_policy.arn
 }
