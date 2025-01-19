@@ -1,5 +1,3 @@
-# variables.tf
-
 # Região da AWS
 variable "aws_region" {
   description = "Região onde os recursos serão provisionados"
@@ -7,15 +5,15 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-# ID do Cognito User Pool
-variable "COGNITO_USER_POOL_ID" {
-  description = "ID do Cognito User Pool"
+# Nome da Lambda de Registro
+variable "lambda_register_name" {
+  description = "Nome da função Lambda de registro"
   type        = string
 }
 
-# ID do Cognito App Client
-variable "COGNITO_CLIENT_ID" {
-  description = "ID do Cognito App Client"
+# Nome da Lambda de Login
+variable "lambda_login_name" {
+  description = "Nome da função Lambda de login"
   type        = string
 }
 
