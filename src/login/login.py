@@ -7,60 +7,68 @@ from botocore.exceptions import ClientError
 # Configuração do Cognito
 cognito_client = boto3.client('cognito-idp')
 
-# Recuperar o ID do Pool de Usuários a partir das variáveis de ambiente
-USER_POOL_ID = os.environ['COGNITO_USER_POOL_ID']
+# Recuperar o Client ID do Cognito a partir das variáveis de ambiente
+CLIENT_ID = os.environ['COGNITO_CLIENT_ID']
 
 def is_valid_email(email):
-    """Função para validar o formato do email"""
+    """Valida o formato do email"""
     email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
     return re.match(email_regex, email) is not None
 
 def generate_error_response(status_code, message):
-    """Função centralizada para retornar erros com formato padrão"""
+    """Gera uma resposta de erro padrão"""
     return {
         'statusCode': status_code,
-        'body': json.dumps({'message': message})
+        'body': json.dumps({'error': message})
     }
 
 def lambda_handler(event, context):
-    # Parse do corpo da requisição (POST)
-    body = json.loads(event['body'])
+    # Parse do corpo da requisição
+    try:
+        body = json.loads(event['body'])
+    except json.JSONDecodeError:
+        return generate_error_response(400, 'Invalid JSON in request body')
 
-    # Verificar se os parâmetros obrigatórios estão presentes
-    username = body.get('username')
+    # Recuperar parâmetros obrigatórios
+    login_identifier = body.get('username') or body.get('email')
     password = body.get('password')
-    email = body.get('email')
 
-    if not (username or email):
+    # Validações básicas
+    if not login_identifier:
         return generate_error_response(400, 'Missing parameter: username or email')
-
     if not password:
         return generate_error_response(400, 'Missing parameter: password')
-
-    # Validar formato de email
-    if email and not is_valid_email(email):
+    if body.get('email') and not is_valid_email(body['email']):
         return generate_error_response(400, 'Invalid email format')
 
     try:
-        # Tentar login utilizando o username ou email
-        login_identifier = email if email else username
+        # Tentar autenticar o usuário
         auth_response = cognito_client.initiate_auth(
-            ClientId=os.environ['COGNITO_CLIENT_ID'],
+            ClientId=CLIENT_ID,
             AuthFlow='USER_PASSWORD_AUTH',
             AuthParameters={
-                'USERNAME': login_identifier,  # Utiliza email ou username
+                'USERNAME': login_identifier,
                 'PASSWORD': password
             }
         )
 
+        # Retornar sucesso com tokens relevantes
         return {
             'statusCode': 200,
             'body': json.dumps({
                 'message': 'Login successful',
-                'auth_response': auth_response
+                'access_token': auth_response['AuthenticationResult']['AccessToken'],
+                'id_token': auth_response['AuthenticationResult']['IdToken'],
+                'refresh_token': auth_response['AuthenticationResult']['RefreshToken']
             })
         }
 
+    except cognito_client.exceptions.NotAuthorizedException:
+        return generate_error_response(401, 'Incorrect username or password')
+    except cognito_client.exceptions.UserNotConfirmedException:
+        return generate_error_response(403, 'User is not confirmed. Please confirm your email.')
+    except cognito_client.exceptions.UserNotFoundException:
+        return generate_error_response(404, 'User does not exist')
     except ClientError as e:
         error_message = e.response['Error'].get('Message', 'Unknown error')
         return generate_error_response(500, f'Error: {error_message}')

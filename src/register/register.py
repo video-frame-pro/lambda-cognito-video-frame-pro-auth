@@ -25,7 +25,10 @@ def generate_error_response(status_code, message):
 
 def lambda_handler(event, context):
     # Parse do corpo da requisição (POST)
-    body = json.loads(event['body'])
+    try:
+        body = json.loads(event['body'])
+    except json.JSONDecodeError:
+        return generate_error_response(400, 'Invalid JSON in request body')
 
     # Verificar se os parâmetros obrigatórios estão presentes
     username = body.get('username')
@@ -38,8 +41,9 @@ def lambda_handler(event, context):
     if not password:
         return generate_error_response(400, 'Missing parameter: password')
 
-    if len(password) > 6:
-        return generate_error_response(400, 'Password must be at most 6 characters long')
+    # Verificar se a senha tem exatamente 6 caracteres
+    if len(password) != 6:
+        return generate_error_response(400, 'Password must be exactly 6 characters long')
 
     if not email:
         return generate_error_response(400, 'Missing parameter: email')
@@ -77,11 +81,10 @@ def lambda_handler(event, context):
             UserPoolId=USER_POOL_ID,
             Username=username,
             UserAttributes=[
-                {'Name': 'email', 'Value': email},
-                {'Name': 'email_verified', 'Value': 'True'},  # Marcar o email como verificado
+                {'Name': 'email', 'Value': email},  # O email será enviado para confirmação
                 {'Name': 'updated_at', 'Value': str(current_time)}  # Adicionar o atributo updated_at
             ],
-            MessageAction='SUPPRESS',  # Não envia o email de confirmação
+            MessageAction='RESEND',  # Envia o email de confirmação
         )
 
         # Definir a senha permanente para o usuário
@@ -95,11 +98,11 @@ def lambda_handler(event, context):
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': 'User created successfully',
+                'message': 'User created successfully. Please confirm your email.',
                 'username': username
             })
         }
     except ClientError as e:
         # Tratamento de erro para falhas no Cognito
         error_message = e.response['Error'].get('Message', 'Unknown error')
-        return generate_error_response(500, f'Error: {error_message}')
+        return generate_error_response(500, f'Cognito error: {error_message}')
