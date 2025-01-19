@@ -15,7 +15,7 @@ Este repositório contém a implementação da **lógica de autenticação do us
 
 ## Funções
 
-Este projeto é composto por duas funções Lambda que lidam com a autenticação do usuário:
+Este projeto é composto por duas funções Lambdas que lidam com a autenticação do usuário:
 
 1. **Registro de Usuário**: A função Lambda responsável por criar um novo usuário no **Cognito User Pool** com os dados fornecidos (nome de usuário, email e senha).
 2. **Login de Usuário**: A função Lambda responsável por realizar o login do usuário, validar as credenciais e retornar o **token JWT** que pode ser usado para autenticação em outros serviços.
