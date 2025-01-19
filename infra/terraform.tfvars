@@ -1,6 +1,9 @@
-# ID do Cognito User Pool
-COGNITO_USER_POOL_ID = "us-east-1_ZL87UW5Jl"
+# Região da AWS
+aws_region = "us-east-1"
+
+# Nome das Lambdas
+lambda_register_name = "register"
+lambda_login_name    = "login"
+
 # ARN do Cognito User Pool
 COGNITO_USER_POOL_ARN = "arn:aws:cognito-idp:us-east-1:522814708374:userpool/us-east-1_ZL87UW5Jl"
-# ID do Cognito App Client
-COGNITO_CLIENT_ID = "56pdobut2ba3cau8q6c4t1d46t"

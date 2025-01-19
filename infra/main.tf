@@ -2,18 +2,27 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Recuperar valores do SSM
+data "aws_ssm_parameter" "cognito_user_pool_id" {
+  name = "/video-frame-pro/cognito/user_pool_id"
+}
+
+data "aws_ssm_parameter" "cognito_client_id" {
+  name = "/video-frame-pro/cognito/client_id"
+}
+
 # Função Lambda para Registro de Usuário
 resource "aws_lambda_function" "register_user" {
-  function_name = "user_register_function"
+  function_name = var.lambda_register_name
 
   handler = "register.lambda_handler"
   runtime = "python3.8"
-  role    = aws_iam_role.lambda_register_role.arn  # Atualizado para usar a role específica
+  role    = aws_iam_role.lambda_register_role.arn
 
   environment {
     variables = {
-      COGNITO_USER_POOL_ID = var.COGNITO_USER_POOL_ID
-      COGNITO_CLIENT_ID    = var.COGNITO_CLIENT_ID
+      cognito_user_pool_id = data.aws_ssm_parameter.cognito_user_pool_id.value
+      cognito_client_id    = data.aws_ssm_parameter.cognito_client_id.value
     }
   }
 
@@ -23,16 +32,16 @@ resource "aws_lambda_function" "register_user" {
 
 # Função Lambda para Login de Usuário
 resource "aws_lambda_function" "login_user" {
-  function_name = "user_login_function"
+  function_name = var.lambda_login_name
 
   handler = "login.lambda_handler"
   runtime = "python3.8"
-  role    = aws_iam_role.lambda_login_role.arn  # Atualizado para usar a role específica
+  role    = aws_iam_role.lambda_login_role.arn
 
   environment {
     variables = {
-      COGNITO_USER_POOL_ID = var.COGNITO_USER_POOL_ID
-      COGNITO_CLIENT_ID    = var.COGNITO_CLIENT_ID
+      cognito_user_pool_id = data.aws_ssm_parameter.cognito_user_pool_id.value
+      cognito_client_id    = data.aws_ssm_parameter.cognito_client_id.value
     }
   }
 
@@ -82,7 +91,7 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
   description = "Permissões necessárias para as Lambdas interagirem com o Cognito"
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
         Action = [
