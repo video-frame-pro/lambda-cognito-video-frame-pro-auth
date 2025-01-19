@@ -18,7 +18,7 @@ variable "lambda_login_name" {
 }
 
 # ARN do Cognito User Pool
-variable "COGNITO_USER_POOL_ARN" {
+variable "cognito_user_pool_arn" {
   description = "ARN do Cognito User Pool"
   type        = string
 }

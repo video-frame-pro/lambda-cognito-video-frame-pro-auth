@@ -6,4 +6,4 @@ lambda_register_name = "register"
 lambda_login_name    = "login"
 
 # ARN do Cognito User Pool
-COGNITO_USER_POOL_ARN = "arn:aws:cognito-idp:us-east-1:522814708374:userpool/us-east-1_ZL87UW5Jl"
+cognito_user_pool_arn = "arn:aws:cognito-idp:us-east-1:522814708374:userpool/us-east-1_SvsZ7XxDL"

@@ -51,7 +51,7 @@ resource "aws_lambda_function" "login_user" {
 
 # Role para Lambda de Registro
 resource "aws_iam_role" "lambda_register_role" {
-  name = "lambda_register_user_role"
+  name = "lambda_register_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -69,7 +69,7 @@ resource "aws_iam_role" "lambda_register_role" {
 
 # Role para Lambda de Login
 resource "aws_iam_role" "lambda_login_role" {
-  name = "lambda_login_user_role"
+  name = "lambda_login_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -102,7 +102,7 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
           "lambda:GetFunction"
         ]
         Effect   = "Allow"
-        Resource = var.COGNITO_USER_POOL_ARN
+        Resource = var.cognito_user_pool_arn
       },
       {
         Action = [
@@ -111,7 +111,7 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
           "cognito-idp:AdminGetUser"
         ]
         Effect   = "Allow"
-        Resource = var.COGNITO_USER_POOL_ARN
+        Resource = var.cognito_user_pool_arn
       }
     ]
   })

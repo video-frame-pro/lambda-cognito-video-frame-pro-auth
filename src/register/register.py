@@ -9,7 +9,7 @@ from datetime import datetime
 cognito_client = boto3.client('cognito-idp')
 
 # Recuperar o ID do Pool de Usuários a partir das variáveis de ambiente
-USER_POOL_ID = os.environ['COGNITO_USER_POOL_ID']
+USER_POOL_ID = os.environ['cognito_user_pool_id']
 
 def is_valid_email(email):
     """Função para validar o formato do email"""
