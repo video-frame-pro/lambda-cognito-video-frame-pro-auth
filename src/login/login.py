@@ -8,7 +8,7 @@ from botocore.exceptions import ClientError
 cognito_client = boto3.client('cognito-idp')
 
 # Recuperar o Client ID do Cognito a partir das variáveis de ambiente
-CLIENT_ID = os.environ['COGNITO_CLIENT_ID']
+CLIENT_ID = os.environ['cognito_client_id']
 
 def is_valid_email(email):
     """Valida o formato do email"""
