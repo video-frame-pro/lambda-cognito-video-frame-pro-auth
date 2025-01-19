@@ -23,7 +23,13 @@ class TestLogin(TestCase):
         # Mockando o cliente Cognito retornado pelo boto3
         mock_cognito = MagicMock()
         mock_boto_client.return_value = mock_cognito
-        mock_initiate_auth.return_value = {'AuthenticationResult': 'some_auth_token'}
+        mock_initiate_auth.return_value = {
+            'AuthenticationResult': {
+                'AccessToken': 'access_token_example',
+                'IdToken': 'id_token_example',
+                'RefreshToken': 'refresh_token_example'
+            }
+        }
 
         event = {
             'body': json.dumps({
@@ -35,6 +41,8 @@ class TestLogin(TestCase):
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 200)
         self.assertIn('Login successful', response['body'])
+        self.assertIn('access_token_example', response['body'])
+
 
     @patch('src.login.login.boto3.client')
     @patch('src.login.login.cognito_client.initiate_auth')
@@ -97,3 +105,85 @@ class TestLogin(TestCase):
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 500)
         self.assertIn('Error: Incorrect username or password', response['body'])
+
+    @patch('src.login.login.boto3.client')
+    @patch('src.login.login.cognito_client.initiate_auth')
+    def test_incorrect_username_or_password(self, mock_initiate_auth, mock_boto_client):
+        mock_boto_client.return_value = MagicMock()
+
+        # Simula uma exceção NotAuthorizedException
+        mock_initiate_auth.side_effect = cognito_client.exceptions.NotAuthorizedException(
+            {"Error": {"Code": "NotAuthorizedException", "Message": "Incorrect username or password"}},
+            'InitiateAuth'
+        )
+
+        event = {
+            'body': json.dumps({
+                'username': 'testuser',
+                'password': 'wrongpassword'
+            })
+        }
+
+        response = lambda_handler(event, None)
+        self.assertEqual(response['statusCode'], 401)
+        self.assertIn('Incorrect username or password', response['body'])
+
+
+    @patch('src.login.login.boto3.client')
+    @patch('src.login.login.cognito_client.initiate_auth')
+    def test_user_not_confirmed(self, mock_initiate_auth, mock_boto_client):
+        mock_boto_client.return_value = MagicMock()
+
+        # Simula uma exceção UserNotConfirmedException
+        mock_initiate_auth.side_effect = cognito_client.exceptions.UserNotConfirmedException(
+            {"Error": {"Code": "UserNotConfirmedException", "Message": "User is not confirmed"}},
+            'InitiateAuth'
+        )
+
+        event = {
+            'body': json.dumps({
+                'username': 'testuser',
+                'password': 'testpassword'
+            })
+        }
+
+        response = lambda_handler(event, None)
+        self.assertEqual(response['statusCode'], 403)
+        self.assertIn('User is not confirmed. Please confirm your email.', response['body'])
+
+
+    @patch('src.login.login.boto3.client')
+    @patch('src.login.login.cognito_client.initiate_auth')
+    def test_user_not_found(self, mock_initiate_auth, mock_boto_client):
+        mock_boto_client.return_value = MagicMock()
+
+        # Simula uma exceção UserNotFoundException
+        mock_initiate_auth.side_effect = cognito_client.exceptions.UserNotFoundException(
+            {"Error": {"Code": "UserNotFoundException", "Message": "User does not exist"}},
+            'InitiateAuth'
+        )
+
+        event = {
+            'body': json.dumps({
+                'username': 'nonexistentuser',
+                'password': 'testpassword'
+            })
+        }
+
+        response = lambda_handler(event, None)
+        self.assertEqual(response['statusCode'], 404)
+        self.assertIn('User does not exist', response['body'])
+
+
+    @patch('src.login.login.boto3.client')
+    def test_invalid_json_body(self, mock_boto_client):
+        mock_boto_client.return_value = MagicMock()
+
+        # Simula um evento com JSON inválido
+        event = {
+            'body': '{"username": "testuser", "password": '  # JSON malformado
+        }
+
+        response = lambda_handler(event, None)
+        self.assertEqual(response['statusCode'], 400)
+        self.assertIn('Invalid JSON in request body', response['body'])

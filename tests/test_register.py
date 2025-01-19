@@ -82,7 +82,7 @@ class TestRegisterFunction(TestCase):
 
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Password must be at most 6 characters long', response['body'])
+        self.assertIn('Password must be exactly 6 characters long', response['body'])
 
     @patch('src.register.register.boto3.client')
     @patch('src.register.register.cognito_client.admin_get_user')
@@ -165,7 +165,8 @@ class TestRegisterFunction(TestCase):
 
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 500)
-        self.assertIn('Error: Internal server error', response['body'])
+        self.assertIn('Cognito error: Internal server error', response['body'])
+
 
     @patch('src.register.register.boto3.client')
     @patch('src.register.register.cognito_client.admin_get_user')
@@ -192,3 +193,17 @@ class TestRegisterFunction(TestCase):
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 400)
         self.assertIn('Username already exists', response['body'])
+
+    @patch('src.register.register.boto3.client')
+    def test_invalid_json_body(self, mock_boto_client):
+        mock_boto_client.return_value = MagicMock()
+
+        # Simula um evento com JSON inválido
+        event = {
+            'body': '{"username": "testuser", "password": "123456", '  # JSON incompleto (malformado)
+        }
+
+        response = lambda_handler(event, None)
+        self.assertEqual(response['statusCode'], 400)
+        self.assertIn('Invalid JSON in request body', response['body'])
+
