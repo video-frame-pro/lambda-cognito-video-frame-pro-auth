@@ -84,9 +84,9 @@ Certifique-se de ter as credenciais da AWS configuradas corretamente e o **AWS C
 ### 3. Deploy da Infraestrutura
 
 1. No diretório `infra`, configure as variáveis no arquivo `terraform.tfvars`:
-    - **COGNITO_USER_POOL_ID**: ID do **User Pool** do Cognito.
-    - **COGNITO_USER_POOL_ARN**: ARN do **User Pool**.
-    - **COGNITO_CLIENT_ID**: ID do **App Client** no Cognito.
+    - **cognito_user_pool_id**: ID do **User Pool** do Cognito.
+    - **cognito_user_pool_arn**: ARN do **User Pool**.
+    - **cognito_client_id**: ID do **App Client** no Cognito.
 
 2. Execute o **Terraform** para provisionar os recursos na AWS:
 
