@@ -9,7 +9,7 @@ from datetime import datetime
 cognito_client = boto3.client('cognito-idp')
 
 # Recuperar o ID do Pool de Usuários a partir das variáveis de ambiente
-USER_POOL_ID = os.environ['cognito_user_pool_id']
+cognito_user_pool_id = os.environ['cognito_user_pool_id']
 
 def is_valid_email(email):
     """Função para validar o formato do email"""
@@ -41,32 +41,30 @@ def lambda_handler(event, context):
     if not password:
         return generate_error_response(400, 'Missing parameter: password')
 
-    # Verificar se a senha tem exatamente 6 caracteres
     if len(password) != 6:
         return generate_error_response(400, 'Password must be exactly 6 characters long')
 
     if not email:
         return generate_error_response(400, 'Missing parameter: email')
 
-    # Validar formato de email
     if not is_valid_email(email):
         return generate_error_response(400, 'Invalid email format')
 
+    # Verificar se o email já existe
     try:
-        # Verificar se o email já existe
         cognito_client.admin_get_user(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=cognito_user_pool_id,
             Username=email  # Verifica se o email já está em uso
         )
         return generate_error_response(400, 'Email already exists')
     except cognito_client.exceptions.UserNotFoundException:
-        pass  # O usuário não existe, então podemos continuar
+        pass  # O username não existe, então podemos continuar
 
+    # Verificar se o username já existe
     try:
-        # Verificar se o username já existe
         cognito_client.admin_get_user(
-            UserPoolId=USER_POOL_ID,
-            Username=username  # Verifica se o username já está em uso
+            UserPoolId=cognito_user_pool_id,
+            Username=username
         )
         return generate_error_response(400, 'Username already exists')
     except cognito_client.exceptions.UserNotFoundException:
@@ -78,18 +76,20 @@ def lambda_handler(event, context):
 
         # Criar o usuário no Cognito via admin_create_user
         cognito_client.admin_create_user(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=cognito_user_pool_id,
             Username=username,
             UserAttributes=[
+                #{'Name': 'email_verified', 'Value': 'True'},  # Marcar o email como verificado
                 {'Name': 'email', 'Value': email},  # O email será enviado para confirmação
                 {'Name': 'updated_at', 'Value': str(current_time)}  # Adicionar o atributo updated_at
             ],
+            #MessageAction='SUPPRESS',  # Não envia o email de confirmação
             MessageAction='RESEND',  # Envia o email de confirmação
         )
 
         # Definir a senha permanente para o usuário
         cognito_client.admin_set_user_password(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=cognito_user_pool_id,
             Username=username,
             Password=password,
             Permanent=True
@@ -103,6 +103,5 @@ def lambda_handler(event, context):
             })
         }
     except ClientError as e:
-        # Tratamento de erro para falhas no Cognito
         error_message = e.response['Error'].get('Message', 'Unknown error')
-        return generate_error_response(500, f'Cognito error: {error_message}')
+        return generate_error_response(500, f'Error: {error_message}')
