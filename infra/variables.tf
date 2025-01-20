@@ -17,8 +17,8 @@ variable "lambda_login_name" {
   type        = string
 }
 
-# ARN do Cognito User Pool
-variable "cognito_user_pool_arn" {
-  description = "ARN do Cognito User Pool"
-  type        = string
+# Tempo de retenção dos logs
+variable "log_retention_days" {
+  description = "Número de dias para reter logs no CloudWatch"
+  default     = 7
 }
