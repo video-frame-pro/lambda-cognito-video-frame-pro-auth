@@ -4,6 +4,11 @@ import os
 import re
 from botocore.exceptions import ClientError
 from datetime import datetime
+import logging
+
+# Configuração do logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 # Configuração do Cognito
 cognito_client = boto3.client('cognito-idp')
@@ -18,15 +23,19 @@ def is_valid_email(email):
 
 def generate_error_response(status_code, message):
     """Função centralizada para retornar erros com formato padrão"""
+    logger.error(f"Error response generated - Status: {status_code}, Message: {message}")
     return {
         'statusCode': status_code,
         'body': json.dumps({'message': message})
     }
 
 def lambda_handler(event, context):
+    logger.info("Lambda function invoked")
+
     # Parse do corpo da requisição (POST)
     try:
         body = json.loads(event['body'])
+        logger.info(f"Request body parsed successfully: {body}")
     except json.JSONDecodeError:
         return generate_error_response(400, 'Invalid JSON in request body')
 
@@ -52,49 +61,57 @@ def lambda_handler(event, context):
 
     # Verificar se o email já existe
     try:
+        logger.info(f"Checking if email {email} already exists in Cognito")
         cognito_client.admin_get_user(
             UserPoolId=cognito_user_pool_id,
-            Username=email  # Verifica se o email já está em uso
+            Username=email
         )
         return generate_error_response(400, 'Email already exists')
     except cognito_client.exceptions.UserNotFoundException:
-        pass  # O username não existe, então podemos continuar
+        logger.info(f"Email {email} does not exist. Proceeding.")
 
     # Verificar se o username já existe
     try:
+        logger.info(f"Checking if username {username} already exists in Cognito")
         cognito_client.admin_get_user(
             UserPoolId=cognito_user_pool_id,
             Username=username
         )
         return generate_error_response(400, 'Username already exists')
     except cognito_client.exceptions.UserNotFoundException:
-        pass  # O username não existe, então podemos continuar
+        logger.info(f"Username {username} does not exist. Proceeding.")
 
     try:
         # Obter a hora atual no formato Unix timestamp
         current_time = int(datetime.utcnow().timestamp())
+        logger.info(f"Current timestamp: {current_time}")
 
         # Criar o usuário no Cognito via admin_create_user
-        cognito_client.admin_create_user(
+        logger.info(f"Creating user {username} with email {email}")
+        response = cognito_client.admin_create_user(
             UserPoolId=cognito_user_pool_id,
             Username=username,
             UserAttributes=[
-                #{'Name': 'email_verified', 'Value': 'True'},  # Marcar o email como verificado
-                {'Name': 'email', 'Value': email},  # O email será enviado para confirmação
-                {'Name': 'updated_at', 'Value': str(current_time)}  # Adicionar o atributo updated_at
+                {'Name': 'name', 'Value': username},
+                {'Name': 'email', 'Value': email},
+                {'Name': 'email_verified', 'Value': 'True'},  # Marcar o email como verificado
+                {'Name': 'updated_at', 'Value': str(current_time)}
             ],
-            #MessageAction='SUPPRESS',  # Não envia o email de confirmação
-            MessageAction='RESEND',  # Envia o email de confirmação
+            MessageAction='SUPPRESS',
         )
+        logger.info(f"User creation response: {response}")
 
         # Definir a senha permanente para o usuário
+        logger.info(f"Setting password for user {username}")
         cognito_client.admin_set_user_password(
             UserPoolId=cognito_user_pool_id,
             Username=username,
             Password=password,
-            Permanent=True
+            Permanent=True,
+            UserConfirmed=True
         )
 
+        logger.info(f"User {username} created successfully")
         return {
             'statusCode': 200,
             'body': json.dumps({
