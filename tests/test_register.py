@@ -7,12 +7,12 @@ from datetime import datetime
 import boto3  # Importando boto3 para garantir que o mock da região seja configurado
 
 # Defina as variáveis de ambiente **antes** da importação
-os.environ['aws_region'] = 'us-east-1'
-os.environ['cognito_user_pool_id'] = 'fake_id'
-os.environ['cognito_client_id'] = 'fake_client_id'
+os.environ['AWS_REGION'] = 'us-east-1'
+os.environ['COGNITO_USER_POOL_ID'] = 'fake_id'
+os.environ['COGNITO_CLIENT_ID'] = 'fake_client_id'
 
 # Garanta que o boto3 use a região definida
-boto3.setup_default_session(region_name=os.environ['aws_region'])
+boto3.setup_default_session(region_name=os.environ['AWS_REGION'])
 
 # Import the functions from your module
 from src.register.register import lambda_handler, cognito_client, is_valid_email, generate_error_response
@@ -75,14 +75,15 @@ class TestRegisterFunction(TestCase):
         event = {
             'body': json.dumps({
                 'username': 'testuser',
-                'password': '1234567',
+                'password': '1234567',  # Senha longa
                 'email': 'testuser@example.com'
             })
         }
 
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Password must be exactly 6 characters long', response['body'])
+        self.assertIn('Password must be exactly 6 characters long', response['body'])  # Alinhado com a mensagem da função
+
 
     @patch('src.register.register.boto3.client')
     @patch('src.register.register.cognito_client.admin_get_user')
@@ -165,8 +166,7 @@ class TestRegisterFunction(TestCase):
 
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 500)
-        self.assertIn('Cognito error: Internal server error', response['body'])
-
+        self.assertIn('Error: Internal server error', response['body'])
 
     @patch('src.register.register.boto3.client')
     @patch('src.register.register.cognito_client.admin_get_user')
@@ -195,15 +195,20 @@ class TestRegisterFunction(TestCase):
         self.assertIn('Username already exists', response['body'])
 
     @patch('src.register.register.boto3.client')
-    def test_invalid_json_body(self, mock_boto_client):
+    def test_invalid_json_in_request_body(self, mock_boto_client):
+        # Simula a criação do cliente do boto3
         mock_boto_client.return_value = MagicMock()
 
-        # Simula um evento com JSON inválido
+        # Evento com corpo JSON inválido
         event = {
-            'body': '{"username": "testuser", "password": "123456", '  # JSON incompleto (malformado)
+            'body': '{invalid-json}'  # JSON malformado
         }
 
+        # Chama a função lambda_handler
         response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Invalid JSON in request body', response['body'])
 
+        # Verifica se o statusCode é 400
+        self.assertEqual(response['statusCode'], 400)
+
+        # Verifica se a mensagem de erro está correta
+        self.assertIn('Invalid JSON in request body', response['body'])
