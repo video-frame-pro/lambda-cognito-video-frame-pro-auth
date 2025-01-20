@@ -2,6 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Obter informações sobre a conta AWS (ID da conta, ARN, etc.)
+data "aws_caller_identity" "current" {}
+
 # Recuperar valores do SSM
 data "aws_ssm_parameter" "cognito_user_pool_id" {
   name = "/video-frame-pro/cognito/user_pool_id"
