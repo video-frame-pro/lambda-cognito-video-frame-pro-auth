@@ -92,10 +92,12 @@ def lambda_handler(event, context):
             UserPoolId=cognito_user_pool_id,
             Username=username,
             UserAttributes=[
+                {'Name': 'name', 'Value': username},
                 {'Name': 'email', 'Value': email},
+                {'Name': 'email_verified', 'Value': 'True'},  # Marcar o email como verificado
                 {'Name': 'updated_at', 'Value': str(current_time)}
             ],
-            MessageAction='RESEND',
+            MessageAction='SUPPRESS',
         )
         logger.info(f"User creation response: {response}")
 
@@ -105,7 +107,8 @@ def lambda_handler(event, context):
             UserPoolId=cognito_user_pool_id,
             Username=username,
             Password=password,
-            Permanent=True
+            Permanent=True,
+            UserConfirmed=True
         )
 
         logger.info(f"User {username} created successfully")

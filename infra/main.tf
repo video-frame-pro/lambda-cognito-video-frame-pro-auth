@@ -110,6 +110,7 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
           "cognito-idp:InitiateAuth",
           "cognito-idp:AdminCreateUser",
           "cognito-idp:RespondToAuthChallenge",
+          "cognito-idp:AdminUpdateUserAttributes",
           "lambda:GetFunction"
         ],
         Effect   = "Allow",
