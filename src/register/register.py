@@ -107,15 +107,14 @@ def lambda_handler(event, context):
             UserPoolId=cognito_user_pool_id,
             Username=username,
             Password=password,
-            Permanent=True,
-            UserConfirmed=True
+            Permanent=True
         )
 
         logger.info(f"User {username} created successfully")
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': 'User created successfully. Please confirm your email.',
+                'message': 'User created successfully.',
                 'username': username
             })
         }
