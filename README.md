@@ -163,7 +163,7 @@ Para testar a integração:
 Execute os testes e gere o relatório de cobertura:
 
 ```sh
-find tests -name 'requirements.txt' -exec pip install -r {} +
+find tests -name 'requirements.txt' -exec pip install -r {} \;
 pip install coverage coverage-badge
 coverage run -m unittest discover -s tests -p '*_test.py'
 coverage report -m
