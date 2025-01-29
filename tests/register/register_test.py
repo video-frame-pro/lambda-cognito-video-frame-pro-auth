@@ -21,7 +21,7 @@ class TestRegisterFunction(TestCase):
 
     @patch('src.register.register.boto3.client')  # Mock do boto3.client
     @patch('src.register.register.cognito_client.admin_get_user')
-    def test_missing_username(self, mock_get_user, mock_boto_client):
+    def test_missing_user_name(self, mock_get_user, mock_boto_client):
         mock_boto_client.return_value = MagicMock()
 
         event = {
@@ -33,7 +33,7 @@ class TestRegisterFunction(TestCase):
 
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Missing parameter: username', response['body'])
+        self.assertIn('Missing parameter: user_name', response['body'])
 
     @patch('src.register.register.boto3.client')
     @patch('src.register.register.cognito_client.admin_get_user')
@@ -42,7 +42,7 @@ class TestRegisterFunction(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'email': 'testuser@example.com'
             })
         }
@@ -58,7 +58,7 @@ class TestRegisterFunction(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': '123456'
             })
         }
@@ -74,7 +74,7 @@ class TestRegisterFunction(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': '1234567',  # Senha longa
                 'email': 'testuser@example.com'
             })
@@ -92,7 +92,7 @@ class TestRegisterFunction(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': '123456',
                 'email': 'invalidemail'
             })
@@ -106,11 +106,11 @@ class TestRegisterFunction(TestCase):
     @patch('src.register.register.cognito_client.admin_get_user')
     def test_email_already_exists(self, mock_get_user, mock_boto_client):
         mock_boto_client.return_value = MagicMock()
-        mock_get_user.return_value = {'Username': 'testuser@example.com'}
+        mock_get_user.return_value = {'user_name': 'testuser@example.com'}
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': '123456',
                 'email': 'testuser@example.com'
             })
@@ -130,7 +130,7 @@ class TestRegisterFunction(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'newuser',
+                'user_name': 'newuser',
                 'password': '123456',
                 'email': 'newuser@example.com'
             })
@@ -158,7 +158,7 @@ class TestRegisterFunction(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'newuser',
+                'user_name': 'newuser',
                 'password': '123456',
                 'email': 'newuser@example.com'
             })
@@ -170,13 +170,13 @@ class TestRegisterFunction(TestCase):
 
     @patch('src.register.register.boto3.client')
     @patch('src.register.register.cognito_client.admin_get_user')
-    def test_username_already_exists(self, mock_get_user, mock_boto_client):
+    def test_user_name_already_exists(self, mock_get_user, mock_boto_client):
         mock_boto_client.return_value = MagicMock()
 
         # Simula o retorno de usuário já existente
         def side_effect(*args, **kwargs):
             if kwargs['Username'] == 'existinguser':
-                return {'Username': 'existinguser'}
+                return {'username': 'existinguser'}
             else:
                 raise cognito_client.exceptions.UserNotFoundException({"Error": {"Code": "UserNotFoundException"}}, 'AdminGetUser')
 
@@ -184,7 +184,7 @@ class TestRegisterFunction(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'existinguser',
+                'user_name': 'existinguser',
                 'password': '123456',
                 'email': 'newemail@example.com'
             })
