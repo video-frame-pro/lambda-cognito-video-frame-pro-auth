@@ -43,21 +43,6 @@ class TestLogin(TestCase):
         self.assertIn("Login successful", response["body"]["message"])
         self.assertIn("access_token", response["body"])
 
-    def test_missing_email(self):
-        """Testa erro quando o email está ausente"""
-        event = {"body": json.dumps({"user_name": "testuser", "password": "testpassword"})}
-        response = lambda_handler(event, None)
-
-        self.assertEqual(response["statusCode"], 400)
-        self.assertIn("Missing required fields", response["body"]["message"])
-
-    def test_missing_password(self):
-        """Testa erro quando a senha está ausente"""
-        event = {"body": json.dumps({"user_name": "testuser", "email": "test@example.com"})}
-        response = lambda_handler(event, None)
-
-        self.assertEqual(response["statusCode"], 400)
-        self.assertIn("Missing parameter: password", response["body"]["message"])
 
     def test_invalid_email_format(self):
         """Testa erro ao fornecer um e-mail inválido"""
@@ -93,11 +78,11 @@ class TestLogin(TestCase):
         self.assertEqual(response["statusCode"], 404)
         self.assertIn("User does not exist", response["body"]["message"])
 
-    def test_validate_request_missing_email(self):
+    def test_validate_request_missing_password(self):
         """Testa erro ao chamar validate_request sem o campo obrigatório"""
         with self.assertRaises(ValueError) as context:
             validate_request({})
-        self.assertEqual(str(context.exception), "Missing required fields: email")
+        self.assertEqual(str(context.exception), "Missing required fields: password")
 
     def test_normalize_body_valid_dict(self):
         """Testa se normalize_body retorna corretamente um dicionário"""

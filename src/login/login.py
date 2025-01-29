@@ -41,7 +41,7 @@ def validate_request(body):
     """
     Valida os campos obrigatórios na requisição.
     """
-    required_fields = ["email"]
+    required_fields = ["password"]
     missing_fields = [field for field in required_fields if field not in body]
     if missing_fields:
         raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")

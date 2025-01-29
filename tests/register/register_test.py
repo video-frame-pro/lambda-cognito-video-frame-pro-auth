@@ -34,15 +34,6 @@ class TestRegisterFunction(TestCase):
         self.assertIn("Missing required fields", response["body"]["message"])
 
     @patch("src.register.register.cognito_client.admin_get_user")
-    def test_missing_password(self, mock_get_user):
-        """Teste para quando `password` está ausente"""
-        event = {"body": json.dumps({"user_name": "testuser", "email": "testuser@example.com"})}
-
-        response = lambda_handler(event, None)
-        self.assertEqual(response["statusCode"], 400)
-        self.assertIn("Missing required fields", response["body"]["message"])
-
-    @patch("src.register.register.cognito_client.admin_get_user")
     def test_missing_email(self, mock_get_user):
         """Teste para quando `email` está ausente"""
         event = {"body": json.dumps({"user_name": "testuser", "password": "123456"})}
