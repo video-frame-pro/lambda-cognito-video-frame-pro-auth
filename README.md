@@ -158,56 +158,14 @@ Para testar a integração:
 - Para acessar outros serviços protegidos, o **token JWT** deve ser incluído no cabeçalho da requisição como um **Bearer Token**.
 
 
-## Executando Testes Unitários e Verificando Cobertura
+## Executando Testes Unitários
 
-## Cobertura de Testes
-
-### Pré-requisitos
-
-Certifique-se de ter os seguintes itens instalados e configurados:
-
-- **Python** (versão 3.6 ou superior)
-- **pip** (gerenciador de pacotes do Python)
-
-### Passos para Executar os Testes Unitários e Verificar a Cobertura
-
-1. **Instale as dependências de desenvolvimento**:
-   No diretório raiz do projeto, execute o seguinte comando para instalar as dependências necessárias para os testes:
-
-   ```sh
-   pip install -r tests/requirements.txt
-   ```
-
-2. **Execute os testes com cobertura**:
-   Use o `coverage.py` para rodar os testes e medir a cobertura:
-
-   ```sh
-   coverage run -m unittest discover -s tests
-   ```
-
-3. **Gere o relatório de cobertura**:
-   Após rodar os testes, gere o relatório de cobertura:
-
-   ```sh
-   coverage report -m
-   ```
-
-   Isso irá mostrar a cobertura dos testes no terminal.
-
-4. **(Opcional) Gere um relatório HTML de cobertura**:
-   Para gerar um relatório de cobertura em formato HTML, execute:
-
-   ```sh
-   coverage html
-   ```
-
-   O relatório será gerado no diretório `htmlcov`. Abra o arquivo `index.html` no seu navegador para visualizar o relatório.
-
-### Resumo dos Comandos
+Execute os testes e gere o relatório de cobertura:
 
 ```sh
-pip install -r tests/requirements.txt
-coverage run -m unittest discover -s tests
+find tests -name 'requirements.txt' -exec pip install -r {} +
+pip install coverage coverage-badge
+coverage run -m unittest discover -s tests -p '*_test.py'
 coverage report -m
 coverage html  
 ```

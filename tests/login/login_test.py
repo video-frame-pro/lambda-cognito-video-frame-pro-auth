@@ -33,7 +33,7 @@ class TestLogin(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': 'testpassword'
             })
         }
@@ -46,7 +46,7 @@ class TestLogin(TestCase):
 
     @patch('src.login.login.boto3.client')
     @patch('src.login.login.cognito_client.initiate_auth')
-    def test_missing_username_or_email(self, mock_initiate_auth, mock_boto_client):
+    def test_missing_user_name_or_email(self, mock_initiate_auth, mock_boto_client):
         mock_boto_client.return_value = MagicMock()
 
         event = {
@@ -56,7 +56,7 @@ class TestLogin(TestCase):
         }
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Missing parameter: username or email', response['body'])
+        self.assertIn('Missing parameter: user_name or email', response['body'])
 
     @patch('src.login.login.boto3.client')
     @patch('src.login.login.cognito_client.initiate_auth')
@@ -65,7 +65,7 @@ class TestLogin(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'testuser'
+                'user_name': 'testuser'
             })
         }
         response = lambda_handler(event, None)
@@ -92,34 +92,34 @@ class TestLogin(TestCase):
     def test_client_error(self, mock_initiate_auth, mock_boto_client):
         mock_boto_client.return_value = MagicMock()
         mock_initiate_auth.side_effect = ClientError(
-            error_response={'Error': {'Code': 'NotAuthorizedException', 'Message': 'Incorrect username or password'}},
+            error_response={'Error': {'Code': 'NotAuthorizedException', 'Message': 'Incorrect user_name or password'}},
             operation_name='InitiateAuth'
         )
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': 'wrongpassword'
             })
         }
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 500)
-        self.assertIn('Error: Incorrect username or password', response['body'])
+        self.assertIn('Error: Incorrect user_name or password', response['body'])
 
     @patch('src.login.login.boto3.client')
     @patch('src.login.login.cognito_client.initiate_auth')
-    def test_incorrect_username_or_password(self, mock_initiate_auth, mock_boto_client):
+    def test_incorrect_user_name_or_password(self, mock_initiate_auth, mock_boto_client):
         mock_boto_client.return_value = MagicMock()
 
         # Simula uma exceção NotAuthorizedException
         mock_initiate_auth.side_effect = cognito_client.exceptions.NotAuthorizedException(
-            {"Error": {"Code": "NotAuthorizedException", "Message": "Incorrect username or password"}},
+            {"Error": {"Code": "NotAuthorizedException", "Message": "Incorrect user_name or password"}},
             'InitiateAuth'
         )
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': 'wrongpassword'
             })
         }
@@ -142,7 +142,7 @@ class TestLogin(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'testuser',
+                'user_name': 'testuser',
                 'password': 'testpassword'
             })
         }
@@ -165,7 +165,7 @@ class TestLogin(TestCase):
 
         event = {
             'body': json.dumps({
-                'username': 'nonexistentuser',
+                'user_name': 'nonexistentuser',
                 'password': 'testpassword'
             })
         }
@@ -181,7 +181,7 @@ class TestLogin(TestCase):
 
         # Simula um evento com JSON inválido
         event = {
-            'body': '{"username": "testuser", "password": '  # JSON malformado
+            'body': '{"user_name": "testuser", "password": '  # JSON malformado
         }
 
         response = lambda_handler(event, None)
