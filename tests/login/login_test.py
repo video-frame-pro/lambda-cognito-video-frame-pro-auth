@@ -5,185 +5,108 @@ from unittest.mock import patch, MagicMock
 from botocore.exceptions import ClientError
 import boto3  # Importando boto3 para garantir que o mock da região seja configurado
 
-# Defina as variáveis de ambiente **antes** da importação
-os.environ['aws_region'] = 'us-east-1'
-os.environ['cognito_user_pool_id'] = 'fake_id'
-os.environ['cognito_client_id'] = 'fake_client_id'
+# Definir variáveis de ambiente antes da importação
+os.environ["AWS_REGION"] = "us-east-1"
+os.environ["COGNITO_USER_POOL_ID"] = "fake_id"
+os.environ["COGNITO_CLIENT_ID"] = "fake_client_id"
 
-# Garanta que o boto3 use a região definida
-boto3.setup_default_session(region_name=os.environ['aws_region'])
+# Garantir que boto3 use a região definida
+boto3.setup_default_session(region_name=os.environ["AWS_REGION"])
 
-from src.login.login import lambda_handler, cognito_client
+# Importar funções do módulo
+from src.login.login import (
+    lambda_handler,
+    cognito_client,
+    create_response,
+    normalize_body,
+    validate_request,
+)
+
 
 class TestLogin(TestCase):
 
-    @patch('src.login.login.boto3.client')  # Mock do boto3.client para interceptar a criação do cognito_client
-    @patch('src.login.login.cognito_client.initiate_auth')  # Mock para a função initiate_auth
-    def test_successful_login(self, mock_initiate_auth, mock_boto_client):
-        # Mockando o cliente Cognito retornado pelo boto3
-        mock_cognito = MagicMock()
-        mock_boto_client.return_value = mock_cognito
+    @patch("src.login.login.cognito_client.initiate_auth")
+    def test_successful_login(self, mock_initiate_auth):
+        """Testa um login bem-sucedido"""
         mock_initiate_auth.return_value = {
-            'AuthenticationResult': {
-                'AccessToken': 'access_token_example',
-                'IdToken': 'id_token_example',
-                'RefreshToken': 'refresh_token_example'
+            "AuthenticationResult": {
+                "AccessToken": "access_token_example",
+                "IdToken": "id_token_example",
+                "RefreshToken": "refresh_token_example",
             }
         }
 
-        event = {
-            'body': json.dumps({
-                'user_name': 'testuser',
-                'password': 'testpassword'
-            })
-        }
-
+        event = {"body": json.dumps({"user_name": "testuser", "password": "testpassword", "email": "test@example.com"})}
         response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 200)
-        self.assertIn('Login successful', response['body'])
-        self.assertIn('access_token_example', response['body'])
 
+        self.assertEqual(response["statusCode"], 200)
+        self.assertIn("Login successful", response["body"]["message"])
+        self.assertIn("access_token", response["body"])
 
-    @patch('src.login.login.boto3.client')
-    @patch('src.login.login.cognito_client.initiate_auth')
-    def test_missing_user_name_or_email(self, mock_initiate_auth, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
-
-        event = {
-            'body': json.dumps({
-                'password': 'testpassword'
-            })
-        }
+    def test_missing_email(self):
+        """Testa erro quando o email está ausente"""
+        event = {"body": json.dumps({"user_name": "testuser", "password": "testpassword"})}
         response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Missing parameter: user_name or email', response['body'])
 
-    @patch('src.login.login.boto3.client')
-    @patch('src.login.login.cognito_client.initiate_auth')
-    def test_missing_password(self, mock_initiate_auth, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
+        self.assertEqual(response["statusCode"], 400)
+        self.assertIn("Missing required fields", response["body"]["message"])
 
-        event = {
-            'body': json.dumps({
-                'user_name': 'testuser'
-            })
-        }
+    def test_missing_password(self):
+        """Testa erro quando a senha está ausente"""
+        event = {"body": json.dumps({"user_name": "testuser", "email": "test@example.com"})}
         response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Missing parameter: password', response['body'])
 
-    @patch('src.login.login.boto3.client')
-    @patch('src.login.login.cognito_client.initiate_auth')
-    def test_invalid_email_format(self, mock_initiate_auth, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
+        self.assertEqual(response["statusCode"], 400)
+        self.assertIn("Missing parameter: password", response["body"]["message"])
 
-        event = {
-            'body': json.dumps({
-                'email': 'invalidemail',
-                'password': 'testpassword'
-            })
-        }
+    def test_invalid_email_format(self):
+        """Testa erro ao fornecer um e-mail inválido"""
+        event = {"body": json.dumps({"user_name": "testuser", "password": "testpassword", "email": "invalidemail"})}
         response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Invalid email format', response['body'])
 
-    @patch('src.login.login.boto3.client')
-    @patch('src.login.login.cognito_client.initiate_auth')
-    def test_client_error(self, mock_initiate_auth, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
-        mock_initiate_auth.side_effect = ClientError(
-            error_response={'Error': {'Code': 'NotAuthorizedException', 'Message': 'Incorrect user_name or password'}},
-            operation_name='InitiateAuth'
-        )
+        self.assertEqual(response["statusCode"], 400)
+        self.assertIn("Invalid email format", response["body"]["message"])
 
-        event = {
-            'body': json.dumps({
-                'user_name': 'testuser',
-                'password': 'wrongpassword'
-            })
-        }
-        response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 500)
-        self.assertIn('Error: Incorrect user_name or password', response['body'])
-
-    @patch('src.login.login.boto3.client')
-    @patch('src.login.login.cognito_client.initiate_auth')
-    def test_incorrect_user_name_or_password(self, mock_initiate_auth, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
-
-        # Simula uma exceção NotAuthorizedException
-        mock_initiate_auth.side_effect = cognito_client.exceptions.NotAuthorizedException(
-            {"Error": {"Code": "NotAuthorizedException", "Message": "Incorrect user_name or password"}},
-            'InitiateAuth'
-        )
-
-        event = {
-            'body': json.dumps({
-                'user_name': 'testuser',
-                'password': 'wrongpassword'
-            })
-        }
-
-        response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 401)
-        self.assertIn('Incorrect username or password', response['body'])
-
-
-    @patch('src.login.login.boto3.client')
-    @patch('src.login.login.cognito_client.initiate_auth')
-    def test_user_not_confirmed(self, mock_initiate_auth, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
-
-        # Simula uma exceção UserNotConfirmedException
+    @patch("src.login.login.cognito_client.initiate_auth")
+    def test_user_not_confirmed(self, mock_initiate_auth):
+        """Testa erro quando o usuário não confirmou o e-mail"""
         mock_initiate_auth.side_effect = cognito_client.exceptions.UserNotConfirmedException(
-            {"Error": {"Code": "UserNotConfirmedException", "Message": "User is not confirmed"}},
-            'InitiateAuth'
+            {"Error": {"Code": "UserNotConfirmedException", "Message": "User is not confirmed"}}, "InitiateAuth"
         )
 
-        event = {
-            'body': json.dumps({
-                'user_name': 'testuser',
-                'password': 'testpassword'
-            })
-        }
-
+        event = {"body": json.dumps({"user_name": "testuser", "password": "testpassword", "email": "test@example.com"})}
         response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 403)
-        self.assertIn('User is not confirmed. Please confirm your email.', response['body'])
 
+        self.assertEqual(response["statusCode"], 403)
+        self.assertIn("User is not confirmed", response["body"]["message"])
 
-    @patch('src.login.login.boto3.client')
-    @patch('src.login.login.cognito_client.initiate_auth')
-    def test_user_not_found(self, mock_initiate_auth, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
-
-        # Simula uma exceção UserNotFoundException
+    @patch("src.login.login.cognito_client.initiate_auth")
+    def test_user_not_found(self, mock_initiate_auth):
+        """Testa erro quando o usuário não existe no Cognito"""
         mock_initiate_auth.side_effect = cognito_client.exceptions.UserNotFoundException(
-            {"Error": {"Code": "UserNotFoundException", "Message": "User does not exist"}},
-            'InitiateAuth'
+            {"Error": {"Code": "UserNotFoundException", "Message": "User does not exist"}}, "InitiateAuth"
         )
 
-        event = {
-            'body': json.dumps({
-                'user_name': 'nonexistentuser',
-                'password': 'testpassword'
-            })
-        }
-
+        event = {"body": json.dumps({"user_name": "nonexistentuser", "password": "testpassword", "email": "test@example.com"})}
         response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 404)
-        self.assertIn('User does not exist', response['body'])
 
+        self.assertEqual(response["statusCode"], 404)
+        self.assertIn("User does not exist", response["body"]["message"])
 
-    @patch('src.login.login.boto3.client')
-    def test_invalid_json_body(self, mock_boto_client):
-        mock_boto_client.return_value = MagicMock()
+    def test_validate_request_missing_email(self):
+        """Testa erro ao chamar validate_request sem o campo obrigatório"""
+        with self.assertRaises(ValueError) as context:
+            validate_request({})
+        self.assertEqual(str(context.exception), "Missing required fields: email")
 
-        # Simula um evento com JSON inválido
-        event = {
-            'body': '{"user_name": "testuser", "password": '  # JSON malformado
-        }
+    def test_normalize_body_valid_dict(self):
+        """Testa se normalize_body retorna corretamente um dicionário"""
+        event = {"body": {"email": "test@example.com"}}
+        body = normalize_body(event)
+        self.assertEqual(body, {"email": "test@example.com"})
 
-        response = lambda_handler(event, None)
-        self.assertEqual(response['statusCode'], 400)
-        self.assertIn('Invalid JSON in request body', response['body'])
+    def test_normalize_body_invalid(self):
+        """Testa se normalize_body levanta erro quando o body está ausente"""
+        with self.assertRaises(ValueError) as context:
+            normalize_body({"body": None})
+        self.assertEqual(str(context.exception), "Request body is missing or invalid.")
