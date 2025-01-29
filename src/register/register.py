@@ -14,7 +14,7 @@ logger.setLevel(logging.INFO)
 cognito_client = boto3.client('cognito-idp')
 
 # Recuperar o ID do Pool de Usuários a partir das variáveis de ambiente
-cognito_user_pool_id = os.environ['cognito_user_pool_id']
+COGNITO_USER_POOL_ID = os.environ['COGNITO_USER_POOL_ID']
 
 def is_valid_email(email):
     """Função para validar o formato do email"""
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
     try:
         logger.info(f"Checking if email {email} already exists in Cognito")
         cognito_client.admin_get_user(
-            UserPoolId=cognito_user_pool_id,
+            UserPoolId=COGNITO_USER_POOL_ID,
             Username=email
         )
         return generate_error_response(400, 'Email already exists')
@@ -74,7 +74,7 @@ def lambda_handler(event, context):
     try:
         logger.info(f"Checking if username {username} already exists in Cognito")
         cognito_client.admin_get_user(
-            UserPoolId=cognito_user_pool_id,
+            UserPoolId=COGNITO_USER_POOL_ID,
             Username=username
         )
         return generate_error_response(400, 'Username already exists')
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
         # Criar o usuário no Cognito via admin_create_user
         logger.info(f"Creating user {username} with email {email}")
         response = cognito_client.admin_create_user(
-            UserPoolId=cognito_user_pool_id,
+            UserPoolId=COGNITO_USER_POOL_ID,
             Username=username,
             UserAttributes=[
                 {'Name': 'name', 'Value': username},
@@ -104,7 +104,7 @@ def lambda_handler(event, context):
         # Definir a senha permanente para o usuário
         logger.info(f"Setting password for user {username}")
         cognito_client.admin_set_user_password(
-            UserPoolId=cognito_user_pool_id,
+            UserPoolId=COGNITO_USER_POOL_ID,
             Username=username,
             Password=password,
             Permanent=True

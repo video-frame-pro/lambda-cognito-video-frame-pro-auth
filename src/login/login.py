@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 cognito_client = boto3.client('cognito-idp')
 
 # Recuperar o Client ID do Cognito a partir das variáveis de ambiente
-cognito_client_id = os.environ['cognito_client_id']
+COGNITO_CLIENT_ID = os.environ['COGNITO_CLIENT_ID']
 
 def is_valid_email(email):
     """Valida o formato do email"""
@@ -57,7 +57,7 @@ def lambda_handler(event, context):
         # Tentar autenticar o usuário
         logger.info(f"Attempting to authenticate user: {login_identifier}")
         auth_response = cognito_client.initiate_auth(
-            ClientId=cognito_client_id,
+            ClientId=COGNITO_CLIENT_ID,
             AuthFlow='USER_PASSWORD_AUTH',
             AuthParameters={
                 'USERNAME': login_identifier,
