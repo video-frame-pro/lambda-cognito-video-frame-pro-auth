@@ -40,12 +40,12 @@ def lambda_handler(event, context):
         return generate_error_response(400, 'Invalid JSON in request body')
 
     # Recuperar parâmetros obrigatórios
-    login_identifier = body.get('username') or body.get('email')
+    login_identifier = body.get('user_name') or body.get('email')
     password = body.get('password')
 
     if not login_identifier:
-        logger.warning("Missing parameter: username or email")
-        return generate_error_response(400, 'Missing parameter: username or email')
+        logger.warning("Missing parameter: user_name or email")
+        return generate_error_response(400, 'Missing parameter: user_name or email')
     if not password:
         logger.warning("Missing parameter: password")
         return generate_error_response(400, 'Missing parameter: password')
