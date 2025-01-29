@@ -107,6 +107,11 @@ resource "aws_iam_policy" "lambda_register_policy" {
         Action   = ["cognito-idp:*"],
         Effect   = "Allow",
         Resource = var.cognito_user_pool_arn
+      },
+      {
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+        Effect   = "Allow",
+        Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.register_user.function_name}:*"
       }
     ]
   })
@@ -123,35 +128,7 @@ resource "aws_iam_policy" "lambda_login_policy" {
         Action   = ["cognito-idp:*"],
         Effect   = "Allow",
         Resource = var.cognito_user_pool_arn
-      }
-    ]
-  })
-}
-
-######### POLÍTICAS DE LOGS ############################################
-# Política de permissões para CloudWatch Logs da Lambda de Registro
-resource "aws_iam_policy" "lambda_register_policy" {
-  name = "${var.prefix_name}-${var.lambda_register_name}-policy"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
-        Effect   = "Allow",
-        Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.register_user.function_name}:*"
-      }
-    ]
-  })
-}
-
-# Política de permissões para CloudWatch Logs da Lambda de Login
-resource "aws_iam_policy" "lambda_login_policy" {
-  name = "${var.prefix_name}-${var.lambda_login_name}-policy"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
+      },
       {
         Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
         Effect   = "Allow",
@@ -161,6 +138,7 @@ resource "aws_iam_policy" "lambda_login_policy" {
   })
 }
 
+
 ######### ANEXAR POLÍTICAS ############################################
 # Anexar políticas de Cognito e Logs à Lambda de Registro
 resource "aws_iam_role_policy_attachment" "register_policy_attachment" {
@@ -168,18 +146,8 @@ resource "aws_iam_role_policy_attachment" "register_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_register_policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "register_logging_policy_attachment" {
-  role       = aws_iam_role.lambda_register_role.name
-  policy_arn = aws_iam_policy.lambda_register_policy.arn
-}
-
 # Anexar políticas de Cognito e Logs à Lambda de Login
 resource "aws_iam_role_policy_attachment" "login_policy_attachment" {
-  role       = aws_iam_role.lambda_login_role.name
-  policy_arn = aws_iam_policy.lambda_login_policy.arn
-}
-
-resource "aws_iam_role_policy_attachment" "login_logging_policy_attachment" {
   role       = aws_iam_role.lambda_login_role.name
   policy_arn = aws_iam_policy.lambda_login_policy.arn
 }
