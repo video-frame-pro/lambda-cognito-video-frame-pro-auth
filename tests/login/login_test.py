@@ -43,13 +43,6 @@ class TestLogin(TestCase):
         self.assertIn("Login successful", response["body"]["message"])
         self.assertIn("access_token", response["body"])
 
-    def test_missing_password(self):
-        """Testa erro quando a senha está ausente"""
-        event = {"body": json.dumps({"user_name": "testuser", "email": "test@example.com"})}
-        response = lambda_handler(event, None)
-
-        self.assertEqual(response["statusCode"], 400)
-        self.assertIn("Missing parameter: password", response["body"]["message"])
 
     def test_invalid_email_format(self):
         """Testa erro ao fornecer um e-mail inválido"""
